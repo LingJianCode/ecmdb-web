@@ -193,8 +193,9 @@ const selectedReceivers = ref<ReceiverRef[]>([])
 // 表格选择相关
 const tableSelectedReceivers = ref<ReceiverRef[]>([])
 
+import type { Column } from "@@/components/DataTable/types"
 // 接收者表格列配置
-const receiverColumns = [
+const receiverColumns: Column[] = [
   {
     prop: "type",
     label: "类型",

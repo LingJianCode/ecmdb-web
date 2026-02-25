@@ -164,7 +164,8 @@ const currentEditId = ref<number | null>(null)
 const drawerTitle = computed(() => (isEdit.value ? "编辑模板" : "创建模板"))
 
 // 表格配置
-const tableColumns = TABLE_COLUMNS
+import type { Column } from "@@/components/DataTable/types"
+const tableColumns = TABLE_COLUMNS as Column[]
 const tableProps = TABLE_PROPS
 
 // 获取操作按钮配置

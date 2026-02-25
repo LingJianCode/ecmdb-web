@@ -148,8 +148,10 @@ const datasourceTypes = ref<DatasourceType[]>([
 const drawerVisible = ref(false)
 const currentDatasource = ref<Datasource | null>(null)
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格配置
-const tableColumns = [
+const tableColumns: Column[] = [
   { prop: "name", label: "数据源名称", minWidth: 150 },
   { prop: "type", label: "类型", width: 200, slot: "type" },
   { prop: "http.url", label: "连接地址", minWidth: 200 },

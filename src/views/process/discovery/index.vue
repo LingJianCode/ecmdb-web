@@ -113,12 +113,14 @@ const fieldMap = new Map<string, string>()
 // 表格数据
 const discoveriesData = ref<discovery[]>([])
 
+import type { Column } from "@@/components/DataTable/types"
+
 // ==================== 表格配置 ====================
-const tableColumns = [
-  { prop: "template_id", label: "模版名称", slot: "templateName", align: "center" as const },
-  { prop: "field", label: "字段名称", slot: "fieldName", align: "center" as const },
-  { prop: "value", label: "字段值", align: "center" as const },
-  { prop: "runner_name", label: "执行器名称", slot: "runnerName", align: "center" as const }
+const tableColumns: Column[] = [
+  { prop: "template_id", label: "模版名称", slot: "templateName", align: "center" },
+  { prop: "field", label: "字段名称", slot: "fieldName", align: "center" },
+  { prop: "value", label: "字段值", align: "center" },
+  { prop: "runner_name", label: "执行器名称", slot: "runnerName", align: "center" }
 ]
 
 const operateBtnItems = [

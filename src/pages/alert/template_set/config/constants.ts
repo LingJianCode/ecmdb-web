@@ -2,8 +2,10 @@
  * 模板集合相关常量配置
  */
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-export const TABLE_COLUMNS = [
+export const TABLE_COLUMNS: Column[] = [
   {
     prop: "name",
     label: "集合信息",

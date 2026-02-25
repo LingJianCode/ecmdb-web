@@ -159,6 +159,12 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api\/alert/, "/api")
         },
+        "/api/task": {
+          target: `http://${viteEnv.VITE_TASK_API}`,
+          ws: true,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/task/, "/api")
+        },
         "/minio": {
           target: `http://${viteEnv.VITE_MINIO_ENDPOINT}`,
           changeOrigin: true,

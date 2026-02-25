@@ -98,13 +98,15 @@ import CreateRelation from "./create.vue"
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 const modelData = useModelStore().modelsData
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
-  { prop: "relation_name", label: "唯一标识", align: "center" as const, slot: "relation_name" },
-  { prop: "source_model_uid", label: "源模型", align: "center" as const, slot: "source_model_uid" },
-  { prop: "target_model_uid", label: "目标模型", align: "center" as const, slot: "target_model_uid" },
-  { prop: "relation_type_uid", label: "关联类型", align: "center" as const, slot: "relation_type_uid" },
-  { prop: "mapping", label: "源→目标约束", align: "center" as const, slot: "mapping" }
+const tableColumns: Column[] = [
+  { prop: "relation_name", label: "唯一标识", align: "center", slot: "relation_name" },
+  { prop: "source_model_uid", label: "源模型", align: "center", slot: "source_model_uid" },
+  { prop: "target_model_uid", label: "目标模型", align: "center", slot: "target_model_uid" },
+  { prop: "relation_type_uid", label: "关联类型", align: "center", slot: "relation_type_uid" },
+  { prop: "mapping", label: "源→目标约束", align: "center", slot: "mapping" }
 ]
 
 // 操作按钮配置

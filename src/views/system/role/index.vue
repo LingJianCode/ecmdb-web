@@ -121,7 +121,9 @@ const menuRef = ref<InstanceType<typeof MenuPermission>>()
 const roleCode = ref<string>("")
 const rolesData = ref<role[]>([])
 
-const tableColumns = [
+import type { Column } from "@@/components/DataTable/types"
+
+const tableColumns: Column[] = [
   {
     prop: "name",
     label: "角色名称",

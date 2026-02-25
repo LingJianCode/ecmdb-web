@@ -115,8 +115,10 @@ const alerts = ref<Alert[]>([])
 const loading = ref(false)
 const alertFilter = ref("all")
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
+const tableColumns: Column[] = [
   {
     prop: "level",
     label: "等级",

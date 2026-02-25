@@ -85,12 +85,14 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 // 当前编辑的ID
 const currentId = ref<number>()
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
-  { prop: "name", label: "名称", align: "center" as const },
-  { prop: "uid", label: "唯一标识", align: "center" as const },
-  { prop: "source_describe", label: "源->目标描述", align: "center" as const },
-  { prop: "target_describe", label: "目标->源描述", align: "center" as const }
+const tableColumns: Column[] = [
+  { prop: "name", label: "名称", align: "center" },
+  { prop: "uid", label: "唯一标识", align: "center" },
+  { prop: "source_describe", label: "源->目标描述", align: "center" },
+  { prop: "target_describe", label: "目标->源描述", align: "center" }
 ]
 
 // 操作按钮配置（暂时只支持查看，因为后端API不支持更新和删除）

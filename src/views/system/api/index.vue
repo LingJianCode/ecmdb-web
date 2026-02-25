@@ -63,14 +63,16 @@ const handleRefresh = () => {
   ElMessage.success("数据已刷新")
 }
 
+import type { Column } from "@@/components/DataTable/types"
+
 /** 表格列配置 */
-const tableColumns = [
-  { prop: "path", label: "路径", width: 300, align: "left" as const },
-  { prop: "method", label: "方法", align: "center" as const },
-  { prop: "is_auth", label: "是否登录", align: "center" as const },
-  { prop: "is_permission", label: "是否鉴权", align: "center" as const },
-  { prop: "is_audit", label: "是否审计", align: "center" as const },
-  { prop: "desc", label: "接口介绍", align: "center" as const }
+const tableColumns: Column[] = [
+  { prop: "path", label: "路径", width: 300, align: "left" },
+  { prop: "method", label: "方法", align: "center" },
+  { prop: "is_auth", label: "是否登录", align: "center" },
+  { prop: "is_permission", label: "是否鉴权", align: "center" },
+  { prop: "is_audit", label: "是否审计", align: "center" },
+  { prop: "desc", label: "接口介绍", align: "center" }
 ]
 
 /** 监听分页参数的变化 */

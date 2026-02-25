@@ -144,8 +144,10 @@ const currentEditId = ref<number | null>(null)
 // 计算属性
 const drawerTitle = computed(() => (isEdit.value ? "编辑配置" : "创建配置"))
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
+const tableColumns: Column[] = [
   {
     prop: "configInfo",
     label: "配置信息",

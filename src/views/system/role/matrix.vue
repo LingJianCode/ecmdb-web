@@ -115,13 +115,15 @@ const {
   resetPermission
 } = useMatrixPermission()
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
+const tableColumns: Column[] = [
   {
     prop: "menuName",
     label: "菜单名称",
     minWidth: 70,
-    align: "center" as const,
+    align: "center",
     slot: "menuName"
   },
   {

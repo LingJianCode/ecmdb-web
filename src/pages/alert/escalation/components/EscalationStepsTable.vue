@@ -143,8 +143,10 @@ const modelValue = computed({
   set: (value) => emit("update:modelValue", value)
 })
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 升级步骤表格列配置
-const stepTableColumns = computed(() => [
+const stepTableColumns = computed<Column[]>(() => [
   {
     prop: "level",
     label: "级别",

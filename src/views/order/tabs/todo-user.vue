@@ -61,15 +61,17 @@ const orderInfo = ref<order>()
 const action = ref<string>("todo")
 const loading = ref<boolean>(false)
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
-  { prop: "id", label: "工单号", align: "center" as const },
-  { prop: "task_id", label: "流程任务号", align: "center" as const },
-  { prop: "template_name", label: "工单名称", slot: "templateName", align: "center" as const },
-  { prop: "provide", label: "来源", slot: "provide", align: "center" as const },
-  { prop: "starter", label: "提单人", align: "center" as const },
-  { prop: "current_step", label: "当前步骤", align: "center" as const },
-  { prop: "proc_inst_create_time", label: "流程提交时间", align: "center" as const }
+const tableColumns: Column[] = [
+  { prop: "id", label: "工单号", align: "center" },
+  { prop: "task_id", label: "流程任务号", align: "center" },
+  { prop: "template_name", label: "工单名称", slot: "templateName", align: "center" },
+  { prop: "provide", label: "来源", slot: "provide", align: "center" },
+  { prop: "starter", label: "提单人", align: "center" },
+  { prop: "current_step", label: "当前步骤", align: "center" },
+  { prop: "proc_inst_create_time", label: "流程提交时间", align: "center" }
 ]
 
 // 操作按钮配置

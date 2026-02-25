@@ -45,15 +45,17 @@ const props = defineProps<Props>()
 const tasksData = ref<task[]>([])
 const loading = ref<boolean>(false)
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
-  { prop: "codebook_name", label: "任务模版", align: "center" as const },
-  { prop: "worker_name", label: "工作节点", align: "center" as const },
-  { prop: "status", label: "状态", slot: "status", align: "center" as const },
-  { prop: "is_timing", label: "定时任务", slot: "timing", align: "center" as const },
-  { prop: "run_time", label: "执行时间", align: "center" as const },
-  { prop: "start_time", label: "开始时间", align: "center" as const },
-  { prop: "end_time", label: "结束时间", align: "center" as const }
+const tableColumns: Column[] = [
+  { prop: "codebook_name", label: "任务模版", align: "center" },
+  { prop: "worker_name", label: "工作节点", align: "center" },
+  { prop: "status", label: "状态", slot: "status", align: "center" },
+  { prop: "is_timing", label: "定时任务", slot: "timing", align: "center" },
+  { prop: "run_time", label: "执行时间", align: "center" },
+  { prop: "start_time", label: "开始时间", align: "center" },
+  { prop: "end_time", label: "结束时间", align: "center" }
 ]
 
 /** 查询任务列表 */

@@ -220,8 +220,10 @@ const handlePageSizeChange = (size: number) => {
   loadRules()
 }
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const columns = [
+const columns: Column[] = [
   { type: "selection", width: 50, prop: "", label: "" },
   { prop: "name", label: "规则名称", flex: 2, showOverflowTooltip: true },
   { prop: "enabled", label: "状态", flex: 0.8, slot: "enabled" },

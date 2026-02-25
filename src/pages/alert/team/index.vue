@@ -97,31 +97,33 @@ const isEditMode = ref<boolean>(false)
 const teamFormRef = ref<InstanceType<typeof TeamForm>>()
 const pendingEditData = ref<Team | null>(null)
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
+const tableColumns: Column[] = [
   {
     prop: "name",
     label: "团队名称",
     slot: "teamName",
-    align: "center" as const
+    align: "center"
   },
   {
     prop: "owner",
     label: "管理人员",
     slot: "owner",
-    align: "center" as const
+    align: "center"
   },
   {
     prop: "members",
     label: "成员数量",
     slot: "memberCount",
-    align: "center" as const
+    align: "center"
   },
   {
     prop: "ctime",
     label: "创建时间",
     slot: "ctime",
-    align: "center" as const
+    align: "center"
   }
 ]
 

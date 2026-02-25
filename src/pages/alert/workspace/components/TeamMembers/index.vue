@@ -74,8 +74,10 @@ const teamInfo = ref<Team | null>(null)
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 const total = ref(0)
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
+const tableColumns: Column[] = [
   {
     prop: "displayName",
     label: "姓名",

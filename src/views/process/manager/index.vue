@@ -113,8 +113,10 @@ import { refreshGraphId } from "@/common/utils/logicflow"
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 const previewRef = ref<InstanceType<typeof Preview>>()
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列定义
-const tableColumns = [
+const tableColumns: Column[] = [
   { prop: "name", label: "名称", showOverflowTooltip: true },
   { prop: "owner", label: "负责人", slot: "ownerName" },
   { prop: "is_notify", label: "消息通知", slot: "isNotify" },

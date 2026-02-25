@@ -71,12 +71,14 @@ import OperateBtn from "@@/components/OperateBtn/index.vue"
 import { Drawer } from "@@/components/Dialogs"
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
-  { prop: "name", label: "名称", align: "center" as const },
-  { prop: "worker_name", label: "工作节点", align: "center" as const },
-  { prop: "codebook_uid", label: "绑定模版", align: "center" as const },
-  { prop: "tags", label: "标签", align: "center" as const, slot: "tags" }
+const tableColumns: Column[] = [
+  { prop: "name", label: "名称", align: "center" },
+  { prop: "worker_name", label: "工作节点", align: "center" },
+  { prop: "codebook_uid", label: "绑定模版", align: "center" },
+  { prop: "tags", label: "标签", align: "center", slot: "tags" }
 ]
 
 // 操作按钮配置

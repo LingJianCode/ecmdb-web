@@ -115,28 +115,7 @@
 import { computed, useSlots, ref, onMounted, onUnmounted, watch, nextTick } from "vue"
 import { Rank } from "@element-plus/icons-vue"
 import Sortable from "sortablejs"
-
-interface Column {
-  prop: string
-  label: string
-  width?: string | number
-  minWidth?: string | number
-  fixed?: "left" | "right"
-  align?: "left" | "center" | "right"
-  showOverflowTooltip?: boolean
-  slot?: string
-  formatter?: (row: any, column: any, cellValue: any) => string
-}
-
-interface Action {
-  key: string
-  label: string
-  type?: "primary" | "success" | "warning" | "danger" | "info"
-  plain?: boolean
-  size?: "small" | "default" | "large"
-  icon?: any
-  disabled?: (row: any) => boolean
-}
+import type { Column, Action } from "./types"
 
 interface Props {
   data: any[]

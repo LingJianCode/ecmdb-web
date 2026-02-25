@@ -233,15 +233,17 @@ const getTotalResults = () => {
   return searchResourcesData.value.reduce((total, tab) => total + tab.total, 0)
 }
 
+import type { Column } from "@/common/components/DataTable/types"
+
 // 获取表格列配置
-const getTableColumns = (modelUid: string) => {
+const getTableColumns = (modelUid: string): Column[] => {
   const fields = displayFileds.value.get(modelUid) || []
-  const columns = [
+  const columns: Column[] = [
     {
       prop: "id",
       label: "ID",
       width: 80,
-      align: "center" as const
+      align: "center"
     },
     ...fields.map((field) => ({
       prop: field.field_uid,

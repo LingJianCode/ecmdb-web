@@ -82,14 +82,16 @@ import TaskRetryDialog from "./components/TaskRetryDialog.vue"
 
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
-  { prop: "order_id", label: "工单号", align: "center" as const },
-  { prop: "codebook_name", label: "任务模版", align: "center" as const },
-  { prop: "worker_name", label: "工作节点", align: "center" as const },
-  { prop: "status", label: "状态", align: "center" as const, slot: "status" },
-  { prop: "is_timing", label: "定时任务", align: "center" as const, slot: "is_timing" },
-  { prop: "run_time", label: "执行时间", align: "center" as const, slot: "run_time", width: 200 }
+const tableColumns: Column[] = [
+  { prop: "order_id", label: "工单号", align: "center" },
+  { prop: "codebook_name", label: "任务模版", align: "center" },
+  { prop: "worker_name", label: "工作节点", align: "center" },
+  { prop: "status", label: "状态", align: "center", slot: "status" },
+  { prop: "is_timing", label: "定时任务", align: "center", slot: "is_timing" },
+  { prop: "run_time", label: "执行时间", align: "center", slot: "run_time", width: 200 }
 ]
 
 // 选中的行

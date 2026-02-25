@@ -111,7 +111,6 @@ export function refreshCacheLdapApi() {
   })
 }
 
-
 /** 同步 LDAP 用户 */
 export function registerSystemUserApi(data: user.createOrUpdateUserReq) {
   return instance.post<number>({

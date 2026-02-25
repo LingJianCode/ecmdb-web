@@ -65,11 +65,13 @@ const addDialogDrawer = ref<boolean>(false)
 const wizardRef = ref()
 const codeEditorMode = ref<"simple" | "advanced">("simple")
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
-  { prop: "name", label: "名称", align: "center" as const },
-  { prop: "identifier", label: "唯一标识", align: "center" as const },
-  { prop: "secret", label: "密钥", align: "center" as const, width: 400 }
+const tableColumns: Column[] = [
+  { prop: "name", label: "名称", align: "center" },
+  { prop: "identifier", label: "唯一标识", align: "center" },
+  { prop: "secret", label: "密钥", align: "center", width: 400 }
 ]
 
 // 操作按钮配置

@@ -224,12 +224,14 @@ const handleSelectionChange = (selection: Resource[]) => {
   selectedResources.value = selection
 }
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = computed(() => {
-  const columns = displayFileds.value.map((item) => ({
+const tableColumns = computed<Column[]>(() => {
+  const columns: Column[] = displayFileds.value.map((item) => ({
     prop: `data.${item.field_uid}`,
     label: item.field_name,
-    align: "center" as const,
+    align: "center",
     slot: `data.${item.field_uid}`
   }))
   return columns

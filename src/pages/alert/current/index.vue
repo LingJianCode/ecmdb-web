@@ -103,15 +103,17 @@ const loading = ref(false)
 const alertFilter = ref("all")
 const levelFilter = ref("all")
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
+const tableColumns: Column[] = [
   {
     prop: "severity",
     label: "",
     width: 10, // Match the history page strict width
     slot: "severityBar",
-    fixed: "left" as const,
-    align: "center" as const
+    fixed: "left",
+    align: "center"
   },
   {
     prop: "monitorType",

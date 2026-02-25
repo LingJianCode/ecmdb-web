@@ -192,8 +192,10 @@ const getWorkspaceName = (workspaceId: number) => {
   return workspace?.name || `工作空间 ${workspaceId}`
 }
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
+const tableColumns: Column[] = [
   { prop: "name", label: "规则名称", minWidth: 120, slot: "name" },
   { prop: "description", label: "描述", minWidth: 150, slot: "description" },
   { prop: "scope", label: "作用域", minWidth: 100, slot: "scope" },

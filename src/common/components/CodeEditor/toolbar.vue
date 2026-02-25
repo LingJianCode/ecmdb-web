@@ -65,9 +65,13 @@ const { currentTheme: globalTheme } = useTheme()
 const currentTheme = ref(globalTheme.value === Theme.Dark ? "oneDark" : "default")
 
 // 监听全局主题变化
-watch(globalTheme, (newTheme) => {
-  currentTheme.value = newTheme === Theme.Dark ? "oneDark" : "default"
-}, { immediate: true })
+watch(
+  globalTheme,
+  (newTheme) => {
+    currentTheme.value = newTheme === Theme.Dark ? "oneDark" : "default"
+  },
+  { immediate: true }
+)
 
 // 硬编码主题选项，确保有选项显示
 const themeOptions = ref([

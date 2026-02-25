@@ -67,15 +67,17 @@ const orderInfo = ref<order>()
 const action = ref<string>("history")
 const loading = ref<boolean>(false)
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
-  { prop: "id", label: "工单号", align: "center" as const },
-  { prop: "template_name", label: "工单名称", slot: "templateName", align: "center" as const },
-  { prop: "provide", label: "来源", slot: "provide", align: "center" as const },
-  { prop: "starter", label: "提单人", align: "center" as const },
-  { prop: "status", label: "状态", slot: "status", align: "center" as const },
-  { prop: "ctime", label: "工单提交时间", align: "center" as const },
-  { prop: "wtime", label: "工单结束时间", align: "center" as const }
+const tableColumns: Column[] = [
+  { prop: "id", label: "工单号", align: "center" },
+  { prop: "template_name", label: "工单名称", slot: "templateName", align: "center" },
+  { prop: "provide", label: "来源", slot: "provide", align: "center" },
+  { prop: "starter", label: "提单人", align: "center" },
+  { prop: "status", label: "状态", slot: "status", align: "center" },
+  { prop: "ctime", label: "工单提交时间", align: "center" },
+  { prop: "wtime", label: "工单结束时间", align: "center" }
 ]
 
 // 操作按钮配置

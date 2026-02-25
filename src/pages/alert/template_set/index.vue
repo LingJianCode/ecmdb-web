@@ -117,8 +117,10 @@ const formData = ref<CreateTemplateSetReq>({
   owner_id: 1 // TODO: 从用户信息获取
 })
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格配置
-const tableColumns = TABLE_COLUMNS
+const tableColumns = TABLE_COLUMNS as Column[]
 const tableProps = TABLE_PROPS
 
 // 使用工具函数

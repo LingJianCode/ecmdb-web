@@ -89,29 +89,31 @@ const apiRef = ref<InstanceType<typeof Form>>()
 // 对话框标题
 const dialogTitle = computed(() => (isEdit.value ? "编辑排班" : "添加排班"))
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
+const tableColumns: Column[] = [
   {
     prop: "name",
     label: "名称",
-    align: "center" as const
+    align: "center"
   },
   {
     prop: "enabled",
     label: "状态",
-    align: "center" as const,
+    align: "center",
     slot: "status"
   },
   {
     prop: "owner",
     label: "管理员",
-    align: "center" as const,
+    align: "center",
     slot: "owner"
   },
   {
     prop: "desc",
     label: "描述",
-    align: "center" as const
+    align: "center"
   }
 ]
 

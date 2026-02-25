@@ -2,8 +2,10 @@
  * 升级步骤模板相关常量配置
  */
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-export const TABLE_COLUMNS = [
+export const TABLE_COLUMNS: Column[] = [
   {
     prop: "templateInfo",
     label: "模板信息",

@@ -135,8 +135,10 @@ const apiRef = ref<InstanceType<typeof Form>>()
 const syncRef = ref<InstanceType<typeof Sync>>()
 const roleSelectorRef = ref<InstanceType<typeof RoleSelector>>()
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
+const tableColumns: Column[] = [
   {
     prop: "username",
     label: "用户名称",

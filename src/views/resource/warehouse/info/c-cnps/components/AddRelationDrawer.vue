@@ -221,12 +221,14 @@ const visibleColumns = computed(() => {
   return attributeFieldsData.value.filter((item) => item.visible !== false)
 })
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 生成表格列配置
-const getTableColumns = () => {
-  const columns: any[] = visibleColumns.value.map((field: any) => ({
+const getTableColumns = (): Column[] => {
+  const columns: Column[] = visibleColumns.value.map((field: any) => ({
     prop: `data.${field.field_uid}`,
     label: field.field_name,
-    align: "center" as const,
+    align: "center",
     slot: field.field_uid,
     showOverflowTooltip: true
   }))

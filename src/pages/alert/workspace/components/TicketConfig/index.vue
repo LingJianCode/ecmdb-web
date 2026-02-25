@@ -122,8 +122,10 @@ const loadConfigs = async () => {
     loading.value = false
   }
 }
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列配置
-const tableColumns = [
+const tableColumns: Column[] = [
   { prop: "name", label: "配置名称", minWidth: 150, slot: "name" },
   { prop: "description", label: "描述", minWidth: 150, slot: "description" },
   { prop: "enabled", label: "状态", minWidth: 100, slot: "enabled" }

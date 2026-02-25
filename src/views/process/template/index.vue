@@ -130,8 +130,10 @@ const templateDialogDrawer = ref<boolean>(false)
 const groupDialogVisible = ref<boolean>(false)
 const thirdpartyDialogVisible = ref<boolean>(false)
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 表格列定义
-const tableColumns = [
+const tableColumns: Column[] = [
   { prop: "name", label: "名称", showOverflowTooltip: true },
   { prop: "group_id", label: "所属组", slot: "groupName" },
   { prop: "create_type", label: "来源", slot: "createType" },

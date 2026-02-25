@@ -470,8 +470,10 @@ const parseFieldValue = (field: any, value: any) => {
   }
 }
 
+import type { Column } from "@@/components/DataTable/types"
+
 // 生成资源表格列配置
-const getResourceTableColumns = () => {
+const getResourceTableColumns = (): Column[] => {
   if (!attributeFieldsData.value || attributeFieldsData.value.length === 0) return []
 
   // 过滤出需要显示的字段
@@ -482,7 +484,7 @@ const getResourceTableColumns = () => {
   return displayFields.map((field: any) => ({
     prop: `data.${field.field_uid}`,
     label: field.field_name,
-    align: "center" as const,
+    align: "center",
     slot: field.secure || field.link ? field.field_uid : undefined,
     showOverflowTooltip: true,
     formatter: (row: any) => {

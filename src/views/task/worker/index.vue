@@ -5,100 +5,55 @@
       title="工作节点管理"
       subtitle="管理工作节点状态和配置"
       :show-add-button="false"
-      @refresh="listWorkersData"
+      @refresh="handleRefresh"
     />
 
-    <!-- 主内容区域 -->
-    <DataTable
-      :data="workersData"
-      :columns="tableColumns"
-      :show-selection="true"
-      :show-pagination="true"
-      :total="paginationData.total"
-      :page-size="paginationData.pageSize"
-      :current-page="paginationData.currentPage"
-      :page-sizes="paginationData.pageSizes"
-      :pagination-layout="paginationData.layout"
-      @selection-change="handleSelectionChange"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    >
-      <!-- 状态列插槽 -->
-      <template #status="{ row }">
-        <el-tag v-if="row.status === 1" effect="plain" type="primary" disable-transitions>运行</el-tag>
-        <el-tag v-else-if="row.status === 2" effect="plain" type="warning" disable-transitions>禁用</el-tag>
-        <el-tag v-else-if="row.status === 3" effect="plain" type="danger" disable-transitions>离线</el-tag>
-        <el-tag v-else type="info" effect="plain" disable-transitions>未知类型</el-tag>
+    <CustomTabs :tabs="tabs" :default-active="activeName" @tab-change="handleTabChange" class="worker-tabs">
+      <template #default="{ activeTab }">
+        <Worker v-if="activeTab === 'worker'" ref="workerRef" />
+        <Executor v-if="activeTab === 'executor'" ref="executorRef" />
       </template>
-
-      <!-- 操作列插槽 -->
-      <template #actions="{ row }">
-        <OperateBtn :items="operateBtnItems" @routeEvent="handleOperateEvent" :operateItem="row" :maxLength="2" />
-      </template>
-    </DataTable>
+    </CustomTabs>
   </PageContainer>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
-import { usePagination } from "@/common/composables/usePagination"
-import { worker } from "@/api/worker/types/worker"
-import { listWorkerApi } from "@/api/worker/worker"
+import { ref } from "vue"
+import Worker from "./tabs/worker.vue"
+import Executor from "./tabs/executor.vue"
+import CustomTabs from "@@/components/Tabs/CustomTabs.vue"
 import ManagerHeader from "@/common/components/ManagerHeader/index.vue"
-import DataTable from "@/common/components/DataTable/index.vue"
 import PageContainer from "@/common/components/PageContainer/index.vue"
-import OperateBtn from "@@/components/OperateBtn/index.vue"
-const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
-// 表格列配置
-const tableColumns = [
-  { prop: "name", label: "名称", align: "center" as const },
-  { prop: "topic", label: "Topic", align: "center" as const },
-  { prop: "status", label: "状态", align: "center" as const, slot: "status" },
-  { prop: "desc", label: "描述", align: "center" as const }
+const activeName = ref("worker")
+
+// 标签页配置
+const tabs = [
+  { name: "worker", label: "工作节点" },
+  { name: "executor", label: "任务执行器" }
 ]
 
-// 操作按钮配置
-const operateBtnItems = [{ name: "禁用", code: "disable", type: "warning" }]
+const workerRef = ref<InstanceType<typeof Worker>>()
+const executorRef = ref<InstanceType<typeof Executor>>()
 
-// 选中的行
-const selectedRows = ref<worker[]>([])
-
-// 操作按钮事件
-const handleOperateEvent = (row: worker, action: string) => {
-  if (action === "disable") {
-    handleUpdate(row)
+// 处理标签页切换
+const handleTabChange = (tabName: string) => {
+  activeName.value = tabName
+  if (tabName === "worker") {
+    workerRef.value?.listWorkersData()
+  } else if (tabName === "executor") {
+    executorRef.value?.listExecutorsData()
   }
 }
 
-// 选择变化事件
-const handleSelectionChange = (selection: worker[]) => {
-  selectedRows.value = selection
+// 刷新数据
+const handleRefresh = () => {
+  if (activeName.value === "worker") {
+    workerRef.value?.listWorkersData()
+  } else if (activeName.value === "executor") {
+    executorRef.value?.listExecutorsData()
+  }
 }
-
-/** 查询模版列表 */
-const workersData = ref<worker[]>([])
-const listWorkersData = () => {
-  listWorkerApi({
-    offset: (paginationData.currentPage - 1) * paginationData.pageSize,
-    limit: paginationData.pageSize
-  })
-    .then(({ data }) => {
-      paginationData.total = data.total
-      workersData.value = data.workers
-    })
-    .catch(() => {
-      workersData.value = []
-    })
-    .finally(() => {})
-}
-
-const handleUpdate = (row: worker) => {
-  console.log(row)
-}
-
-/** 监听分页参数的变化 */
-watch([() => paginationData.currentPage, () => paginationData.pageSize], listWorkersData, { immediate: true })
 </script>
 
 <style lang="scss">
@@ -109,4 +64,16 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], listWor
 }
 </style>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.worker-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+</style>
