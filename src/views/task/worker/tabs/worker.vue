@@ -15,10 +15,10 @@
   >
     <!-- 状态列插槽 -->
     <template #status="{ row }">
-      <el-tag v-if="row.status === 1" effect="plain" type="primary" disable-transitions>运行</el-tag>
-      <el-tag v-else-if="row.status === 2" effect="plain" type="warning" disable-transitions>禁用</el-tag>
-      <el-tag v-else-if="row.status === 3" effect="plain" type="danger" disable-transitions>离线</el-tag>
-      <el-tag v-else type="info" effect="plain" disable-transitions>未知类型</el-tag>
+      <el-tag v-if="row.status === 1" effect="plain" type="primary" round disable-transitions>运行</el-tag>
+      <el-tag v-else-if="row.status === 2" effect="plain" type="warning" round disable-transitions>禁用</el-tag>
+      <el-tag v-else-if="row.status === 3" effect="plain" type="danger" round disable-transitions>离线</el-tag>
+      <el-tag v-else type="info" effect="plain" round disable-transitions>未知类型</el-tag>
     </template>
 
     <!-- 操作列插槽 -->

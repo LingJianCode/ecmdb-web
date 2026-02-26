@@ -31,8 +31,8 @@
                 />
                 <el-radio-group v-model="boundRunMode" class="premium-segmented" @change="handleSearchBound">
                   <el-radio-button :value="undefined">全部</el-radio-button>
-                  <el-radio-button :value="RunMode.Worker">工作节点</el-radio-button>
-                  <el-radio-button :value="RunMode.Execute">分布式节点</el-radio-button>
+                  <el-radio-button :value="RunMode.Worker">推送模式</el-radio-button>
+                  <el-radio-button :value="RunMode.Execute">调度模式</el-radio-button>
                 </el-radio-group>
               </div>
               <div class="header-right">
@@ -66,7 +66,7 @@
                         <span class="card-title">{{ item.name }}</span>
                         <div class="card-meta">
                           <span class="mode-text">{{
-                            item.run_mode === RunMode.Worker ? "工作节点" : "分布式执行"
+                            item.run_mode === RunMode.Worker ? "消息推送模式" : "分布式调度模式"
                           }}</span>
                           <span class="dot-separator">•</span>
                           <span class="target-summary" v-if="item.run_mode === RunMode.Worker && item.worker">{{
@@ -113,8 +113,8 @@
                 />
                 <el-radio-group v-model="forkRunMode" class="premium-segmented" @change="handleSearchFork">
                   <el-radio-button :value="undefined">全部</el-radio-button>
-                  <el-radio-button :value="RunMode.Worker">工作节点</el-radio-button>
-                  <el-radio-button :value="RunMode.Execute">分布式节点</el-radio-button>
+                  <el-radio-button :value="RunMode.Worker">推送模式</el-radio-button>
+                  <el-radio-button :value="RunMode.Execute">调度模式</el-radio-button>
                 </el-radio-group>
               </div>
               <div class="header-right">
@@ -149,7 +149,7 @@
                         <span class="card-title">{{ item.name }}</span>
                         <div class="card-meta">
                           <span class="mode-text">{{
-                            item.run_mode === RunMode.Worker ? "工作节点" : "分布式执行"
+                            item.run_mode === RunMode.Worker ? "消息推送模式" : "分布式调度模式"
                           }}</span>
                           <template v-if="item.worker || item.execute">
                             <span class="dot-separator">•</span>

@@ -33,7 +33,10 @@
                   <el-icon><Monitor /></el-icon>
                 </div>
                 <div class="mode-card__body">
-                  <span class="mode-card__title">分布式执行</span>
+                  <span class="mode-card__title">
+                    分布式调度模式
+                    <span class="recommend-tag">推荐</span>
+                  </span>
                   <span class="mode-card__desc">调度平台节点分发</span>
                 </div>
                 <el-icon class="mode-card__check"><CircleCheckFilled /></el-icon>
@@ -48,8 +51,8 @@
                   <el-icon><Connection /></el-icon>
                 </div>
                 <div class="mode-card__body">
-                  <span class="mode-card__title">工作节点推送</span>
-                  <span class="mode-card__desc">Kafka 消息队列分发</span>
+                  <span class="mode-card__title">消息推送模式</span>
+                  <span class="mode-card__desc">消息队列异步分发</span>
                 </div>
                 <el-icon class="mode-card__check"><CircleCheckFilled /></el-icon>
               </div>
@@ -369,8 +372,25 @@ defineExpose({ submitForm, setFrom, resetForm })
         font-size: 13px;
         font-weight: 600;
         color: #374151;
-        line-height: 1.4;
+        line-height: 1;
         transition: color 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .recommend-tag {
+          font-size: 10px;
+          padding: 0 6px;
+          background: #fef3c7;
+          color: #d97706;
+          border-radius: 4px;
+          font-weight: 600;
+          border: 1px solid #fde68a;
+          display: inline-flex;
+          align-items: center;
+          height: 16px;
+          line-height: 1;
+        }
       }
 
       &__desc {

@@ -3,7 +3,7 @@
     <!-- 头部区域 -->
     <ManagerHeader
       title="执行节点管理"
-      subtitle="工作节点通过 Kafka 推送任务，执行器由 Scheduler 调度，两者相互独立但职责一致"
+      subtitle="分布式调度模式由调度中心统一分配，消息推送模式通过消息中心异步触发，两者相互独立但职责一致"
       :show-add-button="false"
       @refresh="handleRefresh"
     />
@@ -29,8 +29,8 @@ const activeName = ref("executor")
 
 // 标签页配置
 const tabs = [
-  { name: "executor", label: "执行器" },
-  { name: "worker", label: "工作节点" }
+  { name: "executor", label: "分布式调度模式 🌟" },
+  { name: "worker", label: "消息推送模式" }
 ]
 
 const workerRef = ref<InstanceType<typeof Worker>>()
@@ -70,10 +70,5 @@ const handleRefresh = () => {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>

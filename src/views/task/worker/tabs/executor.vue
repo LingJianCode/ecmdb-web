@@ -14,13 +14,15 @@
           v-for="node in row.nodes"
           :key="node.id"
           size="small"
-          type="info"
+          type="primary"
+          effect="light"
+          round
           style="margin-right: 4px; margin-bottom: 4px"
         >
           {{ node.address }}
         </el-tag>
       </div>
-      <el-tag v-else effect="plain" type="danger" size="small">无在线节点</el-tag>
+      <el-tag v-else effect="plain" type="danger" size="small" round>无在线节点</el-tag>
     </template>
 
     <!-- 支持方法插槽 -->
@@ -32,12 +34,18 @@
           :content="handler.desc || '暂无描述'"
           placement="top"
         >
-          <el-tag size="small" type="success" style="margin-right: 4px; margin-bottom: 4px">
+          <el-tag size="small" type="success" effect="light" round style="margin-right: 4px; margin-bottom: 4px">
             {{ handler.name }}
           </el-tag>
         </el-tooltip>
       </div>
       <span v-else class="text-gray-400">暂无方法</span>
+    </template>
+    <!-- 模式插槽 -->
+    <template #mode="{ row }">
+      <el-tag v-if="row.mode === 'PULL'" size="small" type="primary" effect="light" round>主动拉取</el-tag>
+      <el-tag v-else-if="row.mode === 'PUSH'" size="small" type="warning" effect="light" round>调度器推送</el-tag>
+      <el-tag v-else size="small" type="info" effect="plain" round>未知</el-tag>
     </template>
   </DataTable>
 </template>
@@ -54,6 +62,7 @@ import type { Column } from "@@/components/DataTable/types"
 // 表格列配置
 const tableColumns: Column[] = [
   { prop: "name", label: "执行器名称", align: "center" },
+  { prop: "mode", label: "运行模式", align: "center", slot: "mode" },
   { prop: "nodes", label: "下属在线节点", align: "center", slot: "nodes" },
   { prop: "handlers", label: "支持的方法", align: "center", slot: "handlers" },
   { prop: "desc", label: "描述", align: "center" }

@@ -22,4 +22,5 @@ export interface Executor {
   desc: string
   handlers: HandlerDetail[]
   nodes: NodeDetail[]
+  mode?: "PULL" | "PUSH"
 }

@@ -26,8 +26,10 @@
     >
       <!-- 运行模式插槽 -->
       <template #run_mode="{ row }">
-        <el-tag v-if="row.run_mode === RunMode.Worker" type="info" effect="light"> 工作节点 </el-tag>
-        <el-tag v-else-if="row.run_mode === RunMode.Execute" type="success" effect="light"> 分布式执行 </el-tag>
+        <el-tag v-if="row.run_mode === RunMode.Worker" type="info" effect="light" round> 消息推送模式 </el-tag>
+        <el-tag v-else-if="row.run_mode === RunMode.Execute" type="success" effect="light" round>
+          分布式调度模式
+        </el-tag>
       </template>
 
       <!-- 标签列插槽 -->
@@ -90,8 +92,8 @@ import type { Column } from "@@/components/DataTable/types"
 // 表格列配置
 const tableColumns: Column[] = [
   { prop: "name", label: "名称", align: "center", width: 300 },
-  { prop: "run_mode", label: "运行模式", align: "center", slot: "run_mode", width: 140 },
-  { prop: "codebook_uid", label: "绑定任务模版", align: "center", width: 200 },
+  { prop: "run_mode", label: "运行模式", align: "center", slot: "run_mode" },
+  { prop: "codebook_uid", label: "绑定任务模版", align: "center" },
   { prop: "tags", label: "标签", align: "center", slot: "tags" }
 ]
 
