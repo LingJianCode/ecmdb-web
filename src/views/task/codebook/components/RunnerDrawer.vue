@@ -3,7 +3,7 @@
     v-model="visible"
     :title="drawerTitle"
     :subtitle="drawerSubtitle"
-    :header-icon="Setting"
+    :header-icon="Operation"
     size="45%"
     direction="rtl"
     :show-footer="isCreatingRunner"
@@ -19,162 +19,195 @@
         <template #default="{ activeTab }">
           <!-- Tab 1: 当前绑定 -->
           <div v-show="activeTab === 'bound'" class="tab-pane">
-            <div class="action-bar header-actions">
-              <el-button type="primary" :icon="Plus" class="add-btn" @click="handleToCreate">新增执行单元</el-button>
-              <el-button @click="handleRefresh" :icon="Refresh" circle class="refresh-btn custom-circle" />
+            <div class="filter-header">
+              <div class="search-group">
+                <el-input
+                  v-model="boundKeyword"
+                  placeholder="搜索名称..."
+                  :prefix-icon="Search"
+                  clearable
+                  class="premium-search"
+                  @change="handleSearchBound"
+                />
+                <el-radio-group v-model="boundRunMode" class="premium-segmented" @change="handleSearchBound">
+                  <el-radio-button :value="undefined">全部</el-radio-button>
+                  <el-radio-button :value="RunMode.Worker">工作节点</el-radio-button>
+                  <el-radio-button :value="RunMode.Execute">分布式节点</el-radio-button>
+                </el-radio-group>
+              </div>
+              <div class="header-right">
+                <el-button type="primary" :icon="Plus" class="glass-add-btn" @click="handleToCreate">新增</el-button>
+                <el-button @click="handleRefresh" :icon="Refresh" circle class="subtle-refresh" />
+              </div>
             </div>
 
-            <div class="table-wrapper bound-table">
-              <DataTable
-                :data="codebookRunners"
-                :columns="runnerColumns"
-                :show-selection="false"
-                :show-pagination="true"
-                :total="codebookRunnersTotal"
-                v-model:page="boundPageParams.page"
-                v-model:limit="boundPageParams.limit"
-                @pagination="handleRefresh"
-                v-loading="loading"
-                :table-props="tableProps"
-              >
-                <template #run_mode="{ row }">
-                  <el-tag v-if="row.run_mode === RunMode.Worker" type="info" size="small" effect="light">
-                    工作节点
-                  </el-tag>
-                  <el-tag v-else-if="row.run_mode === RunMode.Execute" type="success" size="small" effect="light">
-                    分布式执行
-                  </el-tag>
-                </template>
+            <div class="card-list-wrapper" @scroll="handleScrollBound">
+              <div v-if="loading && codebookRunners.length === 0" class="empty-placeholder">
+                <el-skeleton :rows="3" animated />
+              </div>
+              <div v-else-if="codebookRunners.length === 0" class="empty-state">
+                <el-empty description="暂无绑定的执行单元" :image-size="100" />
+              </div>
+              <div v-else class="runner-cards">
+                <div
+                  v-for="item in codebookRunners"
+                  :key="item.id"
+                  class="premium-card"
+                  :class="item.run_mode.toLowerCase()"
+                >
+                  <div class="card-aside">
+                    <el-icon class="mode-icon"
+                      ><Monitor v-if="item.run_mode === RunMode.Worker" /><Cpu v-else
+                    /></el-icon>
+                  </div>
+                  <div class="card-body">
+                    <div class="card-top">
+                      <div class="card-info">
+                        <span class="card-title">{{ item.name }}</span>
+                        <div class="card-meta">
+                          <span class="mode-text">{{
+                            item.run_mode === RunMode.Worker ? "工作节点" : "分布式执行"
+                          }}</span>
+                          <span class="dot-separator">•</span>
+                          <span class="target-summary" v-if="item.run_mode === RunMode.Worker && item.worker">{{
+                            item.worker.worker_name
+                          }}</span>
+                          <span class="target-summary" v-else-if="item.run_mode === RunMode.Execute && item.execute">{{
+                            item.execute.service_name
+                          }}</span>
+                        </div>
+                      </div>
+                      <div class="item-actions">
+                        <el-button link type="primary" :icon="Edit" @click="handleEdit(item)" />
+                        <el-button link type="danger" :icon="Delete" @click="handleDelete(item)" />
+                      </div>
+                    </div>
 
-                <template #target="{ row }">
-                  <div v-if="row.run_mode === RunMode.Worker && row.worker" class="target-info">
-                    <el-tooltip :content="`Topic: ${row.worker.topic}`" placement="top">
-                      <span>{{ row.worker.worker_name }}</span>
-                    </el-tooltip>
+                    <div class="tags-row" v-if="item.tags && item.tags.length > 0">
+                      <el-tag v-for="tag in item.tags" :key="tag" size="small" class="chip-tag">{{ tag }}</el-tag>
+                    </div>
                   </div>
-                  <div v-else-if="row.run_mode === RunMode.Execute && row.execute" class="target-info">
-                    <el-tooltip :content="`Handler: ${row.execute.handler}`" placement="top">
-                      <span class="execute-target">{{ row.execute.service_name }}</span>
-                    </el-tooltip>
-                  </div>
-                  <span v-else>-</span>
-                </template>
+                </div>
+              </div>
 
-                <template #tags="{ row }">
-                  <div class="tags-container">
-                    <el-tag
-                      v-for="tag in row.tags"
-                      :key="tag"
-                      effect="light"
-                      type="primary"
-                      size="small"
-                      round
-                      class="modern-tag"
-                    >
-                      {{ tag }}
-                    </el-tag>
-                  </div>
-                </template>
-                <template #actions="{ row }">
-                  <el-tooltip content="编辑" placement="top">
-                    <el-button link type="primary" :icon="Edit" @click="handleEdit(row)" />
-                  </el-tooltip>
-                  <el-tooltip content="删除" placement="top">
-                    <el-button link type="danger" :icon="Delete" @click="handleDelete(row)" />
-                  </el-tooltip>
-                </template>
-              </DataTable>
+              <!-- 加载更多提示 -->
+              <div v-if="codebookRunners.length < codebookRunnersTotal" class="load-more-indicator">
+                <el-icon v-if="loading" class="is-loading"><Loading /></el-icon>
+                <span v-else>向下滚动加载更多...</span>
+              </div>
+              <div v-else-if="codebookRunners.length > 0" class="no-more-data">没有更多数据了</div>
             </div>
           </div>
 
           <!-- Tab 2: 可复用配置 -->
           <div v-show="activeTab === 'fork'" class="tab-pane">
-            <div class="action-bar header-actions">
-              <span class="fork-desc">
-                <el-icon class="fork-icon"><DocumentCopy /></el-icon>
-                从系统中选择已有的执行单元，快速复用到当前任务模版
-              </span>
-              <el-button @click="handleRefreshFork" :icon="Refresh" circle class="refresh-btn custom-circle" />
+            <div class="filter-header">
+              <div class="search-group">
+                <el-input
+                  v-model="forkKeyword"
+                  placeholder="筛选名称..."
+                  :prefix-icon="Search"
+                  clearable
+                  class="premium-search"
+                  @change="handleSearchFork"
+                />
+                <el-radio-group v-model="forkRunMode" class="premium-segmented" @change="handleSearchFork">
+                  <el-radio-button :value="undefined">全部</el-radio-button>
+                  <el-radio-button :value="RunMode.Worker">工作节点</el-radio-button>
+                  <el-radio-button :value="RunMode.Execute">分布式节点</el-radio-button>
+                </el-radio-group>
+              </div>
+              <div class="header-right">
+                <el-tooltip content="刷新列表" placement="top">
+                  <el-button @click="() => handleRefreshFork()" :icon="Refresh" circle class="subtle-refresh" />
+                </el-tooltip>
+              </div>
             </div>
 
-            <div class="table-wrapper fork-table">
-              <DataTable
-                :data="forkableRunners"
-                :columns="runnerColumns"
-                :show-selection="false"
-                :show-pagination="true"
-                :total="forkableRunnersTotal"
-                v-model:page="forkPageParams.page"
-                v-model:limit="forkPageParams.limit"
-                @pagination="handleRefreshFork"
-                v-loading="loading"
-                :table-props="tableProps"
-              >
-                <template #run_mode="{ row }">
-                  <el-tag v-if="row.run_mode === RunMode.Worker" type="info" size="small" effect="light">
-                    工作节点
-                  </el-tag>
-                  <el-tag v-else-if="row.run_mode === RunMode.Execute" type="success" size="small" effect="light">
-                    分布式执行
-                  </el-tag>
-                </template>
+            <div class="card-list-wrapper" @scroll="handleScrollFork">
+              <div v-if="loading && forkableRunners.length === 0" class="empty-placeholder">
+                <el-skeleton :rows="3" animated />
+              </div>
+              <div v-else-if="forkableRunners.length === 0" class="empty-state">
+                <el-empty description="没有可供复用的执行单元" :image-size="100" />
+              </div>
+              <div v-else class="runner-cards">
+                <div
+                  v-for="item in forkableRunners"
+                  :key="item.id"
+                  class="premium-card fork-item"
+                  :class="item.run_mode.toLowerCase()"
+                >
+                  <div class="card-aside">
+                    <el-icon class="mode-icon"
+                      ><Monitor v-if="item.run_mode === RunMode.Worker" /><Cpu v-else
+                    /></el-icon>
+                  </div>
+                  <div class="card-body">
+                    <div class="card-top">
+                      <div class="card-info">
+                        <span class="card-title">{{ item.name }}</span>
+                        <div class="card-meta">
+                          <span class="mode-text">{{
+                            item.run_mode === RunMode.Worker ? "工作节点" : "分布式执行"
+                          }}</span>
+                          <template v-if="item.worker || item.execute">
+                            <span class="dot-separator">•</span>
+                            <span class="target-summary">{{
+                              item.run_mode === RunMode.Worker ? item.worker?.worker_name : item.execute?.service_name
+                            }}</span>
+                          </template>
+                        </div>
+                      </div>
+                      <div class="item-actions">
+                        <el-button
+                          type="primary"
+                          size="small"
+                          plain
+                          class="reuse-btn"
+                          :icon="DocumentCopy"
+                          @click="handleFork(item)"
+                        >
+                          复用
+                        </el-button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                <template #target="{ row }">
-                  <div v-if="row.run_mode === RunMode.Worker && row.worker" class="target-info">
-                    <el-tooltip :content="`Topic: ${row.worker.topic}`" placement="top">
-                      <span>{{ row.worker.worker_name }}</span>
-                    </el-tooltip>
-                  </div>
-                  <div v-else-if="row.run_mode === RunMode.Execute && row.execute" class="target-info">
-                    <el-tooltip :content="`Handler: ${row.execute.handler}`" placement="top">
-                      <span class="execute-target">{{ row.execute.service_name }}</span>
-                    </el-tooltip>
-                  </div>
-                  <span v-else>-</span>
-                </template>
-
-                <template #tags="{ row }">
-                  <div class="tags-container">
-                    <el-tag
-                      v-for="tag in row.tags"
-                      :key="tag"
-                      effect="light"
-                      type="info"
-                      size="small"
-                      round
-                      class="modern-tag"
-                    >
-                      {{ tag }}
-                    </el-tag>
-                  </div>
-                </template>
-                <template #actions="{ row }">
-                  <el-button link type="success" size="small" :icon="DocumentCopy" @click="handleFork(row)">
-                    复用配置
-                  </el-button>
-                </template>
-              </DataTable>
+              <!-- 加载更多提示 -->
+              <div v-if="forkableRunners.length < forkableRunnersTotal" class="load-more-indicator">
+                <el-icon v-if="loading" class="is-loading"><Loading /></el-icon>
+                <span v-else>向下滚动加载更多...</span>
+              </div>
+              <div v-else-if="forkableRunners.length > 0" class="no-more-data">没有更多数据了</div>
             </div>
           </div>
         </template>
       </CustomTabs>
     </div>
 
-    <div v-else class="form-view">
-      <div class="form-card">
-        <RunnerForm ref="runnerFormRef" hide-codebook-config @callback="onFormSuccess" />
-      </div>
-    </div>
+    <RunnerForm v-else ref="runnerFormRef" hide-codebook-config @callback="onFormSuccess" />
   </Drawer>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue"
-import { Setting, Plus, Refresh, Edit, Delete, DocumentCopy } from "@element-plus/icons-vue"
+import {
+  Operation,
+  Plus,
+  Refresh,
+  Edit,
+  Delete,
+  DocumentCopy,
+  Monitor,
+  Cpu,
+  Search,
+  Loading
+} from "@element-plus/icons-vue"
 import { Drawer } from "@@/components/Dialogs"
 import CustomTabs from "@/common/components/Tabs/CustomTabs.vue"
-import DataTable from "@/common/components/DataTable/index.vue"
-import type { Column } from "@@/components/DataTable/types"
 import RunnerForm from "@/views/task/runner/form.vue"
 import { useRunner } from "../composables/useRunner"
 import { cloneDeep } from "lodash-es"
@@ -207,28 +240,20 @@ const {
   deleteRunner
 } = useRunner()
 
-const runnerColumns: Column[] = [
-  { prop: "run_mode", label: "运行模式", align: "center", slot: "run_mode", width: 120 },
-  { prop: "target", label: "执行目标", align: "center", slot: "target", width: 180 },
-  { prop: "tags", label: "运行标签", align: "center", slot: "tags" }
-]
-
 const boundPageParams = ref({
   page: 1,
-  limit: 10
+  limit: 20
 })
 
 const forkPageParams = ref({
   page: 1,
-  limit: 10
+  limit: 20
 })
 
-/** 表格公用样式：灰色表头 + border */
-const tableProps = {
-  stripe: false,
-  border: true,
-  "header-cell-style": { background: "#F6F6F6", height: "10px", "text-align": "center" }
-}
+const boundKeyword = ref("")
+const forkKeyword = ref("")
+const boundRunMode = ref<RunMode>()
+const forkRunMode = ref<RunMode>()
 
 const drawerTitle = computed(() => {
   if (isCreatingRunner.value) {
@@ -258,9 +283,24 @@ const open = (row: codebook) => {
   _fetchBound(row.identifier)
 }
 
-const _fetchBound = (uid: string) => {
+const _fetchBound = (uid: string, isAppend: boolean = false) => {
   const offset = (boundPageParams.value.page - 1) * boundPageParams.value.limit
-  fetchCodebookRunners(uid, offset, boundPageParams.value.limit)
+  fetchCodebookRunners(uid, offset, boundPageParams.value.limit, boundKeyword.value, boundRunMode.value, isAppend)
+}
+
+const handleSearchBound = () => {
+  boundPageParams.value.page = 1
+  if (currentCodebook.value) _fetchBound(currentCodebook.value.identifier)
+}
+
+const handleScrollBound = (e: Event) => {
+  const target = e.target as HTMLElement
+  if (target.scrollHeight - target.scrollTop <= target.clientHeight + 10) {
+    if (!loading.value && codebookRunners.value.length < codebookRunnersTotal.value) {
+      boundPageParams.value.page++
+      if (currentCodebook.value) _fetchBound(currentCodebook.value.identifier, true)
+    }
+  }
 }
 
 /** 切换 tab 时按需加载对应数据 */
@@ -283,10 +323,32 @@ const handleRefresh = () => {
   }
 }
 
-const handleRefreshFork = () => {
+const handleRefreshFork = (isAppend: boolean = false) => {
   if (currentCodebook.value) {
     const offset = (forkPageParams.value.page - 1) * forkPageParams.value.limit
-    fetchExcludeCodebookRunners(currentCodebook.value.identifier, offset, forkPageParams.value.limit)
+    fetchExcludeCodebookRunners(
+      currentCodebook.value.identifier,
+      offset,
+      forkPageParams.value.limit,
+      forkKeyword.value,
+      forkRunMode.value,
+      isAppend
+    )
+  }
+}
+
+const handleSearchFork = () => {
+  forkPageParams.value.page = 1
+  handleRefreshFork()
+}
+
+const handleScrollFork = (e: Event) => {
+  const target = e.target as HTMLElement
+  if (target.scrollHeight - target.scrollTop <= target.clientHeight + 10) {
+    if (!loading.value && forkableRunners.value.length < forkableRunnersTotal.value) {
+      forkPageParams.value.page++
+      handleRefreshFork(true)
+    }
   }
 }
 
@@ -370,114 +432,299 @@ defineExpose({
 
 <style lang="scss" scoped>
 .drawer-tabs-wrapper {
-  background: white;
+  background: #f8fafc;
   height: 100%;
 }
 
 .tab-pane {
   display: flex;
   flex-direction: column;
-  gap: 16px;
   height: 100%;
-  padding-top: 10px;
 }
 
-.header-actions {
+.filter-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 16px 20px;
+  background: white;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 16px;
 
-  .add-btn {
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-weight: 500;
+  .search-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
   }
 
-  .custom-circle {
+  .premium-search {
+    flex: 1;
+    max-width: 240px;
+    :deep(.el-input__wrapper) {
+      box-shadow: none !important;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 1px 12px;
+      transition: all 0.2s;
+      &.is-focus {
+        border-color: #3b82f6;
+        background: white;
+        box-shadow: 0 0 0 1px #3b82f6 !important;
+      }
+    }
+  }
+
+  .premium-segmented {
+    :deep(.el-radio-button__inner) {
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      font-size: 13px;
+      background: #f1f5f9;
+      border: none !important;
+      margin: 0 2px;
+      border-radius: 8px !important;
+      color: #64748b;
+      font-weight: 500;
+      transition: all 0.2s;
+      box-shadow: none !important;
+
+      &:hover {
+        color: #1e293b;
+      }
+    }
+    :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+      background: #3b82f6;
+      color: white;
+      box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3) !important;
+    }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .glass-add-btn {
+    border-radius: 8px;
+    background: #3b82f6;
+    border: none;
+    font-weight: 500;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+    padding: 8px 16px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+  }
+
+  .subtle-refresh {
     border: none;
     background: #f1f5f9;
-    color: #475569;
+    color: #64748b;
     &:hover {
       background: #e2e8f0;
       color: #3b82f6;
     }
   }
-
-  .fork-desc {
-    font-size: 13px;
-    color: #64748b;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #f8fafc;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px dashed #cbd5e1;
-
-    .fork-icon {
-      color: #3b82f6;
-      font-size: 15px;
-    }
-  }
-
-  .refresh-btn {
-    transition: transform 0.3s ease;
-    &:active {
-      transform: rotate(180deg);
-    }
-  }
 }
 
-.table-wrapper {
+.card-list-wrapper {
   flex: 1;
-  background: white;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-
-  // ensure there's a min height when no rows
-  min-height: 200px;
-
-  &.fork-table :deep(.el-table) {
-    height: 100%;
-    // hide empty block bottom border
-    border-bottom: none;
-  }
-}
-
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-
-  .modern-tag {
-    border: none;
-    font-weight: 500;
-  }
-}
-
-.target-info {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 13px;
-
-  .execute-target {
-    font-weight: 500;
-    color: var(--el-color-success);
-  }
-}
-
-.form-view {
+  overflow-y: auto;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
 }
 
-.form-card {
+.runner-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.premium-card {
   background: white;
   border-radius: 12px;
-  padding: 4px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  padding: 16px;
+  gap: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #94a3b8;
+    opacity: 0.1;
+  }
+
+  &.worker::before {
+    background: #3b82f6;
+    opacity: 1;
+  }
+  &.execute::before {
+    background: #10b981;
+    opacity: 1;
+  }
+
+  &:hover {
+    border-color: #cbd5e1;
+    transform: scale(1.005);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  }
+
+  .card-aside {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: #f8fafc;
+    border-radius: 10px;
+    color: #64748b;
+    flex-shrink: 0;
+
+    .mode-icon {
+      font-size: 20px;
+    }
+  }
+
+  &.worker .card-aside {
+    color: #3b82f6;
+    background: #eff6ff;
+  }
+  &.execute .card-aside {
+    color: #10b981;
+    background: #ecfdf5;
+  }
+
+  .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .card-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+    font-size: 12px;
+    color: #64748b;
+
+    .mode-text {
+      font-weight: 500;
+    }
+    .dot-separator {
+      color: #cbd5e1;
+    }
+    .target-summary {
+      color: #94a3b8;
+    }
+  }
+
+  .item-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  &:hover .item-actions {
+    opacity: 1;
+  }
+
+  .tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    .chip-tag {
+      background: #f1f5f9;
+      border: none;
+      color: #475569;
+      height: 20px;
+      padding: 0 8px;
+      font-size: 11px;
+      border-radius: 4px;
+    }
+  }
+
+  .reuse-btn {
+    border-radius: 8px;
+    font-weight: 500;
+  }
+}
+
+.load-more-indicator,
+.no-more-data {
+  padding: 16px;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.is-loading {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.empty-state {
+  padding: 60px 0;
 }
 </style>

@@ -279,7 +279,7 @@ defineExpose({ submitForm, setFrom, resetForm })
 
 <style lang="scss" scoped>
 .runner-form-container {
-  padding: 20px;
+  padding: 12px 16px;
   background: #ffffff;
   border-radius: 0;
   box-shadow: none;
@@ -289,7 +289,7 @@ defineExpose({ submitForm, setFrom, resetForm })
 
 .runner-form {
   .form-section {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 
     &:last-child {
       margin-bottom: 0;
@@ -391,8 +391,8 @@ defineExpose({ submitForm, setFrom, resetForm })
   .section-title {
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
-    padding: 10px 14px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border-radius: 6px;
     border: 1px solid #e2e8f0;
@@ -424,7 +424,7 @@ defineExpose({ submitForm, setFrom, resetForm })
   }
 
   .form-row {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 
     &:last-child {
       margin-bottom: 0;

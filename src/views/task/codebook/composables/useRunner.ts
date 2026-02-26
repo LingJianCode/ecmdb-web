@@ -1,5 +1,5 @@
 import { ref } from "vue"
-import { runner } from "@/api/runner/types/runner"
+import { runner, RunMode } from "@/api/runner/types/runner"
 import {
   listRunnerApi,
   listRunnerByCodebookUidApi,
@@ -30,16 +30,33 @@ export function useRunner() {
     }
   }
 
-  const fetchCodebookRunners = async (codebookUid: string, offset: number = 0, limit: number = 1000) => {
-    loading.value = true
+  const fetchCodebookRunners = async (
+    codebookUid: string,
+    offset: number = 0,
+    limit: number = 20,
+    keyword?: string,
+    runMode?: RunMode,
+    isAppend: boolean = false
+  ) => {
+    if (!isAppend) loading.value = true
     try {
-      const { data } = await listRunnerByCodebookUidApi({ codebook_uid: codebookUid, offset, limit })
-      codebookRunners.value = data.runners || []
+      const { data } = await listRunnerByCodebookUidApi({
+        codebook_uid: codebookUid,
+        offset,
+        limit,
+        keyword,
+        run_mode: runMode
+      })
+
+      if (isAppend) {
+        codebookRunners.value = [...codebookRunners.value, ...(data.runners || [])]
+      } else {
+        codebookRunners.value = data.runners || []
+      }
       codebookRunnersTotal.value = data.total || 0
     } catch (error) {
       console.error("Failed to fetch codebook runners:", error)
-      codebookRunners.value = []
-      codebookRunnersTotal.value = 0
+      if (!isAppend) codebookRunners.value = []
     } finally {
       loading.value = false
     }
@@ -48,16 +65,33 @@ export function useRunner() {
   const forkableRunners = ref<runner[]>([])
   const forkableRunnersTotal = ref<number>(0)
 
-  const fetchExcludeCodebookRunners = async (codebookUid: string, offset: number = 0, limit: number = 10) => {
-    loading.value = true
+  const fetchExcludeCodebookRunners = async (
+    codebookUid: string,
+    offset: number = 0,
+    limit: number = 20,
+    keyword?: string,
+    runMode?: RunMode,
+    isAppend: boolean = false
+  ) => {
+    if (!isAppend) loading.value = true
     try {
-      const { data } = await listRunnerExcludeCodebookUidApi({ codebook_uid: codebookUid, offset, limit })
-      forkableRunners.value = data.runners || []
+      const { data } = await listRunnerExcludeCodebookUidApi({
+        codebook_uid: codebookUid,
+        offset,
+        limit,
+        keyword,
+        run_mode: runMode
+      })
+
+      if (isAppend) {
+        forkableRunners.value = [...forkableRunners.value, ...(data.runners || [])]
+      } else {
+        forkableRunners.value = data.runners || []
+      }
       forkableRunnersTotal.value = data.total || 0
     } catch (error) {
       console.error("Failed to fetch exclude codebook runners:", error)
-      forkableRunners.value = []
-      forkableRunnersTotal.value = 0
+      if (!isAppend) forkableRunners.value = []
     } finally {
       loading.value = false
     }

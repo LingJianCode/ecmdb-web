@@ -62,6 +62,8 @@ export interface listRunnerReq {
 
 export interface listByCodebookIdReq extends listRunnerReq {
   codebook_uid: string
+  keyword?: string
+  run_mode?: RunMode
 }
 
 export interface runnerTags {

@@ -1,61 +1,63 @@
 <template>
   <div class="tag-configuration">
-    <div class="tags-container">
-      <!-- 标签输入区域 -->
-      <div class="tags-input-wrapper">
-        <el-input
-          v-model="tagInput"
-          placeholder="输入标签名称，按回车添加"
-          size="large"
-          class="tag-input"
-          @keyup.enter="addTag"
-          @blur="addTag"
-        >
-          <template #suffix>
-            <el-button type="primary" size="small" :icon="Plus" @click="addTag" :disabled="!tagInput.trim()">
-              添加
-            </el-button>
-          </template>
-        </el-input>
+    <!-- 核心输入区域：模拟输入框，不仅是容器，更是视觉焦点 -->
+    <div class="tag-editor-container" :class="{ 'is-active': isFocused }" @click="focusInput">
+      <div class="editor-header">
+        <div class="label-group">
+          <el-icon class="label-icon"><PriceTag /></el-icon>
+          <span class="label-text">运行标签</span>
+        </div>
+        <div class="actions">
+          <span v-if="selectedTags.length > 0" class="tag-count">已选 {{ selectedTags.length }}</span>
+          <el-button v-if="selectedTags.length > 0" link type="primary" size="small" @click.stop="clearAll"
+            >清空</el-button
+          >
+        </div>
       </div>
 
-      <!-- 标签显示区域 -->
-      <div class="tags-display" v-if="selectedTags.length > 0">
-        <div class="tags-header">
-          <span class="tags-count">已选择 {{ selectedTags.length }} 个标签</span>
-          <el-button type="danger" size="small" :icon="Delete" @click="clearAllTags" text> 清空 </el-button>
-        </div>
-        <div class="tags-list">
+      <div class="editor-content">
+        <transition-group name="tag-list">
           <el-tag
             v-for="(tag, index) in selectedTags"
-            :key="index"
-            closable
-            @close="removeTag(index)"
-            class="tag-item"
-            type="info"
-            effect="light"
-          >
-            {{ tag }}
-          </el-tag>
-        </div>
-      </div>
-
-      <!-- 推荐标签区域 -->
-      <div class="suggested-tags" v-if="recommendedTags.length > 0">
-        <div class="suggested-header">
-          <el-icon><Star /></el-icon>
-          <span>推荐标签</span>
-        </div>
-        <div class="suggested-list">
-          <el-tag
-            v-for="tag in recommendedTags"
             :key="tag"
-            @click="addRecommendedTag(tag)"
-            class="suggested-tag"
-            effect="plain"
+            closable
+            size="small"
+            class="vibrant-tag"
+            @close="removeTag(index)"
           >
             {{ tag }}
           </el-tag>
+        </transition-group>
+
+        <input
+          ref="inputRef"
+          v-model="inputValue"
+          type="text"
+          class="ghost-input"
+          :placeholder="selectedTags.length === 0 ? '键入标签名称并回车...' : ''"
+          @focus="isFocused = true"
+          @blur="handleBlur"
+          @keydown.enter.prevent="addTag"
+          @keydown.backspace="handleBackspace"
+        />
+      </div>
+    </div>
+
+    <!-- 智能推荐区域：采用流式布局，弱化边框，强化交互态 -->
+    <div class="smart-suggestions" v-if="recommendedTags.length > 0">
+      <div class="suggestion-header">
+        <span class="dot" />
+        <span>快速添加推荐标签</span>
+      </div>
+      <div class="suggestion-wall">
+        <div
+          v-for="tag in recommendedTags"
+          :key="tag"
+          class="modern-chip"
+          :class="{ 'is-picked': selectedTags.includes(tag) }"
+          @click="toggleTag(tag)"
+        >
+          <span class="text-overflow">{{ tag }}</span>
         </div>
       </div>
     </div>
@@ -64,10 +66,12 @@
 
 <script lang="ts" setup>
 import { ref, watch, onMounted } from "vue"
-import { Plus, Delete, Star } from "@element-plus/icons-vue"
+import { PriceTag } from "@element-plus/icons-vue"
 import { listRunnerTagsApi } from "@/api/runner"
 
-// 接收父组件传递
+// NOTE: 该组件为第三版设计，追求「呼吸感」与「现代工业设计」的平衡。
+// 引入了 transition 动画，使用了更细腻的 HSL 配色方案，强调组件的自愈能力与输入流畅度。
+
 interface Props {
   modelValue?: string[]
   suggestedTags?: string[]
@@ -83,90 +87,94 @@ const emits = defineEmits<{
   change: [value: string[]]
 }>()
 
-// 标签相关状态
-const tagInput = ref("")
+const inputRef = ref<HTMLInputElement | null>(null)
+const inputValue = ref("")
+const isFocused = ref(false)
 const selectedTags = ref<string[]>([])
 const recommendedTags = ref<string[]>([])
 
-// 添加标签
+const focusInput = () => {
+  inputRef.value?.focus()
+}
+
+const handleBlur = () => {
+  isFocused.value = false
+  if (inputValue.value.trim()) {
+    addTag()
+  }
+}
+
 const addTag = () => {
-  const tag = tagInput.value.trim()
-  if (tag && !selectedTags.value.includes(tag)) {
-    selectedTags.value.push(tag)
-    tagInput.value = ""
+  const val = inputValue.value.trim()
+  if (val && !selectedTags.value.includes(val)) {
+    selectedTags.value.push(val)
+    inputValue.value = ""
     emitChange()
+  } else {
+    inputValue.value = ""
   }
 }
 
-// 添加推荐标签
-const addRecommendedTag = (tag: string) => {
-  if (!selectedTags.value.includes(tag)) {
-    selectedTags.value.push(tag)
-    emitChange()
-  }
-}
-
-// 移除标签
 const removeTag = (index: number) => {
   selectedTags.value.splice(index, 1)
   emitChange()
 }
 
-// 清空所有标签
-const clearAllTags = () => {
+const clearAll = () => {
   selectedTags.value = []
   emitChange()
 }
 
-// 发送变化事件
+const handleBackspace = () => {
+  if (inputValue.value === "" && selectedTags.value.length > 0) {
+    selectedTags.value.pop()
+    emitChange()
+  }
+}
+
+const toggleTag = (tag: string) => {
+  const index = selectedTags.value.indexOf(tag)
+  if (index >= 0) {
+    selectedTags.value.splice(index, 1)
+  } else {
+    selectedTags.value.push(tag)
+  }
+  emitChange()
+}
+
 const emitChange = () => {
   emits("update:modelValue", [...selectedTags.value])
   emits("change", [...selectedTags.value])
 }
 
-// 获取推荐标签
 const loadRecommendedTags = () => {
   listRunnerTagsApi()
     .then(({ data }) => {
       const tags = new Set<string>()
       data.runner_tags.forEach((item) => {
-        Object.keys(item.tags_topic).forEach((tag) => {
-          tags.add(tag)
-        })
+        Object.keys(item.tags_topic).forEach((tag) => tags.add(tag))
       })
-      recommendedTags.value = Array.from(tags).slice(0, 10)
+      // 限制展示数量，确保一行平分时不会太拥挤
+      recommendedTags.value = Array.from(tags).slice(0, 7)
     })
     .catch(() => {
       recommendedTags.value = []
     })
 }
 
-// 监听 props 变化
 watch(
   () => props.modelValue,
-  (newValue) => {
-    if (newValue) {
-      selectedTags.value = [...newValue]
-    }
+  (val) => {
+    if (val) selectedTags.value = [...val]
   },
-  { immediate: true }
-)
-
-// 监听 props.suggestedTags 变化
-watch(
-  () => props.suggestedTags,
-  (newValue) => {
-    if (newValue && newValue.length > 0) {
-      recommendedTags.value = [...newValue]
-    }
-  },
-  { immediate: true }
+  { immediate: true, deep: true }
 )
 
 onMounted(() => {
-  // 如果没有传入推荐标签，则从 API 获取
   if (!props.suggestedTags || props.suggestedTags.length === 0) {
     loadRecommendedTags()
+  } else {
+    recommendedTags.value = [...props.suggestedTags]
   }
 })
 </script>
@@ -174,178 +182,187 @@ onMounted(() => {
 <style lang="scss" scoped>
 .tag-configuration {
   width: 100%;
-  max-width: 100%;
+  --primary-color: #4f46e5;
+  --bg-soft: #f9fafb;
+  --border-color: #e5e7eb;
 
-  .tags-container {
-    width: 100%;
-    max-width: 100%;
-    .tags-input-wrapper {
-      margin-bottom: 16px;
+  .tag-editor-container {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: text;
 
-      .tag-input {
-        :deep(.el-input__wrapper) {
-          border-radius: 8px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          transition: all 0.2s ease;
-
-          &:hover {
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-          }
-
-          &.is-focus {
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-          }
-        }
-      }
+    &:hover {
+      border-color: #d1d5db;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     }
 
-    .tags-display {
-      margin-bottom: 16px;
-      padding: 16px;
-      background: #f8fafc;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
+    &.is-active {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
 
-      .tags-header {
+    .editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+
+      .label-group {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
-
-        .tags-count {
-          font-size: 14px;
-          color: #6b7280;
-          font-weight: 500;
-        }
-      }
-
-      .tags-list {
-        display: flex;
-        flex-wrap: wrap;
         gap: 8px;
-        width: 100%;
-        max-width: 100%;
-        overflow: hidden;
+        color: #374151;
 
-        .tag-item {
-          border-radius: 6px;
-          background: #eff6ff;
-          border-color: #bfdbfe;
-          color: #1e40af;
-          font-size: 13px;
-          padding: 4px 8px;
-          max-width: 100%;
-          word-break: break-word;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-
-          .el-tag__close {
-            color: #6b7280;
-            margin-left: 4px;
-
-            &:hover {
-              background: #dbeafe;
-              color: #1e40af;
-            }
-          }
-        }
-      }
-    }
-
-    .suggested-tags {
-      padding: 16px;
-      background: #fef3c7;
-      border-radius: 8px;
-      border: 1px solid #fbbf24;
-
-      .suggested-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 12px;
-
-        .el-icon {
-          margin-right: 6px;
-          color: #f59e0b;
+        .label-icon {
           font-size: 16px;
+          color: var(--primary-color);
         }
 
-        span {
-          font-size: 14px;
-          color: #92400e;
-          font-weight: 500;
+        .label-text {
+          font-size: 13px;
+          font-weight: 600;
         }
       }
 
-      .suggested-list {
+      .actions {
         display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        width: 100%;
-        max-width: 100%;
-        overflow: hidden;
+        align-items: center;
+        gap: 12px;
 
-        .suggested-tag {
-          border-radius: 6px;
-          background: #ffffff;
-          border-color: #fbbf24;
-          color: #92400e;
-          font-size: 13px;
-          padding: 4px 8px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          max-width: 100%;
-          word-break: break-word;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+        .tag-count {
+          font-size: 12px;
+          color: #9ca3af;
+        }
+      }
+    }
 
+    .editor-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+
+      .vibrant-tag {
+        height: 28px;
+        border: none;
+        background: #eef2ff;
+        color: var(--primary-color);
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 0 10px;
+
+        :deep(.el-tag__close) {
+          color: var(--primary-color);
           &:hover {
-            background: #fef3c7;
-            border-color: #f59e0b;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: var(--primary-color);
+            color: #ffffff;
           }
         }
       }
-    }
-  }
-}
 
-// 响应式设计
-@media (max-width: 768px) {
-  .tag-configuration {
-    .tags-container {
-      .tags-display,
-      .suggested-tags {
-        padding: 12px;
-      }
+      .ghost-input {
+        border: none;
+        outline: none;
+        flex: 1;
+        min-width: 120px;
+        font-size: 14px;
+        color: #1f2937;
+        padding: 4px 0;
 
-      .tags-list,
-      .suggested-list {
-        gap: 6px;
-
-        .tag-item,
-        .suggested-tag {
-          max-width: calc(50% - 3px);
-          min-width: 0;
+        &::placeholder {
+          color: #9ca3af;
         }
       }
     }
   }
-}
 
-@media (max-width: 480px) {
-  .tag-configuration {
-    .tags-container {
-      .tags-list,
-      .suggested-list {
-        .tag-item,
-        .suggested-tag {
-          max-width: 100%;
-        }
+  .smart-suggestions {
+    margin-top: 20px;
+
+    .suggestion-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 12px;
+      padding-left: 4px;
+      font-weight: 500;
+
+      .dot {
+        width: 6px;
+        height: 6px;
+        background: #10b981;
+        border-radius: 50%;
       }
     }
+
+    .suggestion-wall {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .modern-chip {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      white-space: nowrap;
+      font-size: 11px;
+      padding: 3px 4px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border-color);
+      color: #4b5563;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+
+      .text-overflow {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      &:hover {
+        background: #ffffff;
+        border-color: #cbd5e1;
+        transform: scale(1.02);
+        color: #1f2937;
+      }
+
+      &.is-picked {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #ffffff;
+      }
+    }
+  }
+}
+
+// 动画
+.tag-list-enter-active,
+.tag-list-leave-active {
+  transition: all 0.3s ease;
+}
+.tag-list-enter-from,
+.tag-list-leave-to {
+  opacity: 0;
+  transform: translateY(8px) scale(0.9);
+}
+
+@keyframes scale-up {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 </style>
