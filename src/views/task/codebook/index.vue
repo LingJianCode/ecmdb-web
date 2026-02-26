@@ -41,12 +41,14 @@
         ref="wizardRef"
       />
     </el-card>
+    <!-- 运行器管理抽屉 -->
+    <RunnerDrawer ref="runnerDrawerRef" />
   </PageContainer>
 </template>
 
 <script setup lang="ts">
 import { h, ref, watch, computed, nextTick } from "vue"
-import { Document, Edit, Delete } from "@element-plus/icons-vue"
+import { Document, Edit, Delete, Setting } from "@element-plus/icons-vue"
 import { usePagination } from "@/common/composables/usePagination"
 import WizardContainer from "@@/components/WizardContainer/index.vue"
 import OperateBtn from "@@/components/OperateBtn/index.vue"
@@ -59,6 +61,7 @@ import Code from "./modal/code.vue"
 import ManagerHeader from "@/common/components/ManagerHeader/index.vue"
 import DataTable from "@/common/components/DataTable/index.vue"
 import PageContainer from "@/common/components/PageContainer/index.vue"
+import RunnerDrawer from "./components/RunnerDrawer.vue"
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 const addDialogDrawer = ref<boolean>(false)
 
@@ -77,6 +80,7 @@ const tableColumns: Column[] = [
 // 操作按钮配置
 const operateBtnItems = [
   { name: "修改", code: "edit", type: "primary", icon: Edit },
+  { name: "执行单元", code: "runner", type: "success", icon: Setting },
   { name: "删除", code: "delete", type: "danger", icon: Delete }
 ]
 
@@ -89,6 +93,8 @@ const handleOperateEvent = (row: codebook, action: string) => {
     handleUpdate(row)
   } else if (action === "delete") {
     handleDelete(row)
+  } else if (action === "runner") {
+    handleOpenRunnerDrawer(row)
   }
 }
 
@@ -317,6 +323,13 @@ const handleDelete = (row: codebook) => {
 
 /** 监听分页参数的变化 */
 watch([() => paginationData.currentPage, () => paginationData.pageSize], listCodebooksData, { immediate: true })
+
+// ------ 执行单元 (Runner) 相关逻辑 ------
+const runnerDrawerRef = ref<InstanceType<typeof RunnerDrawer>>()
+
+const handleOpenRunnerDrawer = (row: codebook) => {
+  runnerDrawerRef.value?.open(row)
+}
 </script>
 
 <style lang="scss">

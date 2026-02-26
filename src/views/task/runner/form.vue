@@ -8,6 +8,7 @@
       label-width="auto"
       class="runner-form"
     >
+      <!-- 基本信息 -->
       <div class="form-section">
         <div class="section-title">
           <el-icon class="section-icon"><Setting /></el-icon>
@@ -16,20 +17,63 @@
 
         <div class="form-row">
           <el-form-item prop="name" label="执行器名称" class="form-item">
-            <el-input v-model="formData.name" placeholder="请输入执行器名称" size="large" clearable />
+            <el-input v-model="formData.name" disabled placeholder="自动生成：模版名称（节点名称）" size="large" />
           </el-form-item>
         </div>
 
         <div class="form-row">
-          <el-form-item prop="worker_name" label="工作节点名称" class="form-item">
-            <el-select v-model="formData.worker_name" placeholder="请选择工作节点" size="large" clearable filterable>
-              <el-option v-for="item in workers" :key="item.id" :label="getLabel(item)" :value="item.name" />
-            </el-select>
+          <el-form-item prop="run_mode" label="运行模式" class="form-item">
+            <div class="run-mode-selector">
+              <div
+                class="mode-card"
+                :class="{ 'is-active': formData.run_mode === RunMode.Execute }"
+                @click="formData.run_mode = RunMode.Execute"
+              >
+                <div class="mode-card__icon">
+                  <el-icon><Monitor /></el-icon>
+                </div>
+                <div class="mode-card__body">
+                  <span class="mode-card__title">分布式执行</span>
+                  <span class="mode-card__desc">调度平台节点分发</span>
+                </div>
+                <el-icon class="mode-card__check"><CircleCheckFilled /></el-icon>
+              </div>
+
+              <div
+                class="mode-card"
+                :class="{ 'is-active': formData.run_mode === RunMode.Worker }"
+                @click="formData.run_mode = RunMode.Worker"
+              >
+                <div class="mode-card__icon">
+                  <el-icon><Connection /></el-icon>
+                </div>
+                <div class="mode-card__body">
+                  <span class="mode-card__title">工作节点推送</span>
+                  <span class="mode-card__desc">Kafka 消息队列分发</span>
+                </div>
+                <el-icon class="mode-card__check"><CircleCheckFilled /></el-icon>
+              </div>
+            </div>
           </el-form-item>
         </div>
+
+        <!-- worker 模式：工作节点选择器 -->
+        <div class="form-row" v-if="formData.run_mode === RunMode.Worker">
+          <el-form-item prop="worker.worker_name" label="工作节点名称" class="form-item">
+            <WorkerSection v-model="formData.worker!.worker_name" />
+          </el-form-item>
+        </div>
+
+        <!-- execute 模式：执行器 + handler 级联选择器 -->
+        <ExecuteSection
+          v-if="formData.run_mode === RunMode.Execute"
+          v-model:service-name="formData.execute!.service_name"
+          v-model:handler="formData.execute!.handler"
+        />
       </div>
 
-      <div class="form-section">
+      <!-- 任务模版配置（仅独立使用时展示） -->
+      <div class="form-section" v-if="!hideCodebookConfig">
         <div class="section-title">
           <el-icon class="section-icon"><Document /></el-icon>
           <span>任务模版配置</span>
@@ -50,10 +94,14 @@
         </div>
       </div>
 
+      <!-- 标签配置 -->
       <div class="form-section">
         <div class="section-title">
           <el-icon class="section-icon"><PriceTag /></el-icon>
           <span>标签配置</span>
+          <el-tooltip content="自动化任务是根据【标签】 + 【任务模版标识】进行匹配工作节点" placement="right">
+            <el-icon class="tip-icon"><QuestionFilled /></el-icon>
+          </el-tooltip>
         </div>
 
         <div class="form-row">
@@ -68,6 +116,9 @@
         <div class="section-title">
           <el-icon class="section-icon"><Setting /></el-icon>
           <span>变量配置</span>
+          <el-tooltip content="配置执行器运行时需要的环境变量和参数" placement="right">
+            <el-icon class="tip-icon"><QuestionFilled /></el-icon>
+          </el-tooltip>
         </div>
 
         <div class="form-row">
@@ -84,164 +135,146 @@
 import { computed, onMounted, ref, watch } from "vue"
 import { cloneDeep } from "lodash-es"
 import { ElMessage, FormInstance, FormRules } from "element-plus"
-import { Setting, Document, PriceTag } from "@element-plus/icons-vue"
-import { registerOrUpdateReq, runner, variables } from "@/api/runner/types/runner"
+import {
+  Setting,
+  Document,
+  PriceTag,
+  QuestionFilled,
+  Connection,
+  Monitor,
+  CircleCheckFilled
+} from "@element-plus/icons-vue"
+import { registerOrUpdateReq, runner, variables, RunMode } from "@/api/runner/types/runner"
 import { registerRunnerApi, updateRunnerAPi } from "@/api/runner"
+import { useCodebooks } from "./composables/useCodebooks"
+import WorkerSection from "./components/WorkerSection.vue"
+import ExecuteSection from "./components/ExecuteSection.vue"
 import variable from "./variable.vue"
-import { codebook } from "@/api/codebook/types/codebook"
-import { worker } from "@/api/worker/types/worker"
-import { listWorkerApi } from "@/api/worker/worker"
-import { listCodebookApi } from "@/api/codebook"
 import tag from "./tag.vue"
 
+const props = defineProps<{
+  hideCodebookConfig?: boolean
+  presetCodebookName?: string
+}>()
+
 const emits = defineEmits(["closed", "callback"])
-const onClosed = () => {
-  emits("closed")
-}
 
-const getLabel = (item: worker) => {
-  return `${item.name} -【 topic: ${item.topic} 】`
-}
-
-const computedSecret = computed(() => {
-  const selectedCodebook = codebooks.value.find((item) => item.identifier === formData.value.codebook_uid)
-
-  return selectedCodebook ? selectedCodebook.secret : ""
-})
-
-// const dialogTagVisible = ref<boolean>(false)
-// const handlerTag = () => {
-//   dialogTagVisible.value = !dialogTagVisible.value
-// }
-// const handlerAddTag = (data: string) => {
-//   formData.value.tags.push(data)
-//   dialogTagVisible.value = false
-// }
-
-// const handlerCloseTag = () => {
-//   dialogTagVisible.value = false
-// }
-
-// 处理标签变化
-const handleTagsChange = (tags: string[]) => {
-  formData.value.tags = tags
-}
-
-// 处理变量变化
-const handleVariablesChange = (variables: variables[]) => {
-  formData.value.variables = variables
-}
-
+// ── 表单数据 ────────────────────────────────────────────────────────────────
 const DEFAULT_FORM_DATA: registerOrUpdateReq = {
   name: "",
-  worker_name: "",
-  topic: "",
   codebook_uid: "",
   codebook_secret: "",
+  run_mode: RunMode.Execute,
   desc: "",
   tags: [],
-  variables: []
+  variables: [],
+  worker: { worker_name: "", topic: "" },
+  execute: { service_name: "", handler: "" }
 }
 
 const formData = ref<registerOrUpdateReq>(cloneDeep(DEFAULT_FORM_DATA))
 const formRef = ref<FormInstance | null>(null)
+
+// ── 校验规则 ────────────────────────────────────────────────────────────────
 const formRules: FormRules = {
   name: [{ required: true, message: "必须输入执行器名称", trigger: "blur" }],
-  worker_name: [{ required: true, message: "必须输入工作节点名称", trigger: "blur" }],
+  run_mode: [{ required: true, message: "必须选择运行模式", trigger: "change" }],
+  "worker.worker_name": [{ required: true, message: "必须选取工作节点", trigger: "change" }],
+  "execute.service_name": [{ required: true, message: "必须选择执行器服务", trigger: "change" }],
+  "execute.handler": [{ required: true, message: "必须选择执行处理器", trigger: "change" }],
   codebook_uid: [{ required: true, message: "必须输入任务模版唯一标识", trigger: "blur" }],
   codebook_secret: [{ required: true, message: "必须输入任务模版密钥", trigger: "blur" }],
   tags: [{ required: true, message: "必须输入标签", trigger: "blur" }]
 }
 
+// ── Composables ─────────────────────────────────────────────────────────────
+const { codebooks, fetchCodebooks } = useCodebooks(formData)
+
+// ── 计算属性 ────────────────────────────────────────────────────────────────
+/** 当前 codebook 名称：优先取父组件注入，其次从列表匹配 */
+const codebookName = computed(() => {
+  if (props.presetCodebookName) return props.presetCodebookName
+  const matched = codebooks.value.find((item) => item.identifier === formData.value.codebook_uid)
+  return matched?.name ?? ""
+})
+
+// ── 自动生成执行单元名称 ──────────────────────────────────────────────────────
+watch(
+  () =>
+    [
+      codebookName.value,
+      formData.value.run_mode,
+      formData.value.worker?.worker_name,
+      formData.value.execute?.service_name
+    ] as const,
+  ([cName, mode, workerName, serviceName]) => {
+    const suffix = mode === RunMode.Worker ? workerName : serviceName
+    if (cName && suffix) {
+      formData.value.name = `${cName}（${suffix}）`
+    } else if (cName) {
+      formData.value.name = `${cName}（）`
+    }
+  },
+  { deep: true, immediate: true }
+)
+
+// ── 表单操作 ────────────────────────────────────────────────────────────────
+const handleTagsChange = (tags: string[]) => {
+  formData.value.tags = tags
+}
+
+const handleVariablesChange = (vars: variables[]) => {
+  formData.value.variables = vars
+}
+
 const submitForm = () => {
   formRef.value?.validate((valid: boolean, fields: any) => {
     if (!valid) return console.error("表单校验不通过", fields)
-    const api = formData.value.id === undefined ? registerRunnerApi : updateRunnerAPi
 
-    // 写入TOPIC
-    const matchedWorker = workers.value.find((item) => item.name === formData.value.worker_name)
-    formData.value = {
-      ...formData.value,
-      topic: matchedWorker?.topic || "default_topic"
+    const api = formData.value.id === undefined ? registerRunnerApi : updateRunnerAPi
+    const submitData = cloneDeep(formData.value)
+
+    // NOTE: 提交时根据 run_mode 裁剪多余字段，保持请求体干净
+    if (submitData.run_mode === RunMode.Worker) {
+      delete submitData.execute
+    } else if (submitData.run_mode === RunMode.Execute) {
+      delete submitData.worker
     }
-    api(formData.value)
+
+    api(submitData)
       .then(() => {
-        onClosed()
+        emits("closed")
         ElMessage.success("保存成功")
         emits("callback")
       })
       .catch((error) => {
-        console.log("catch", error)
+        console.error("submit error", error)
       })
-      .finally(() => {})
   })
-}
-
-/** 查询模版列表 */
-const codebooks = ref<codebook[]>([])
-const listCodebookDagta = () => {
-  listCodebookApi({
-    offset: 0,
-    limit: 100
-  })
-    .then(({ data }) => {
-      codebooks.value = data.codebooks
-    })
-    .catch(() => {
-      codebooks.value = []
-    })
-    .finally(() => {})
-}
-
-/** 查询流程列表 */
-const workers = ref<worker[]>([])
-const listWorkerData = () => {
-  listWorkerApi({
-    offset: 0,
-    limit: 100
-  })
-    .then(({ data }) => {
-      workers.value = data.workers
-    })
-    .catch(() => {
-      workers.value = []
-    })
-    .finally(() => {})
 }
 
 const setFrom = (row: runner) => {
   formData.value = cloneDeep(row)
 
-  Object.keys(formData.value).forEach((key) => {
-    const typedKey = key as keyof typeof formData.value
-    if (formData.value[typedKey] === 0 || formData.value[typedKey] === null || formData.value[typedKey] === "") {
-      delete formData.value[typedKey]
-    }
-  })
+  // NOTE: worker/execute 子对象若缺失则初始化，防止模板对 worker!.xxx 绝对引用报错
+  if (!formData.value.worker) {
+    formData.value.worker = { worker_name: "", topic: "" }
+  }
+  if (!formData.value.execute) {
+    formData.value.execute = { service_name: "", handler: "" }
+  }
 }
 
 const resetForm = () => {
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
 }
 
+// ── 生命周期 ────────────────────────────────────────────────────────────────
 onMounted(() => {
-  listCodebookDagta()
-  listWorkerData()
+  fetchCodebooks()
 })
 
-defineExpose({
-  submitForm,
-  setFrom,
-  resetForm
-})
-
-watch(
-  () => computedSecret.value,
-  (val) => {
-    formData.value.codebook_secret = val
-  },
-  { immediate: true }
-)
+defineExpose({ submitForm, setFrom, resetForm })
 </script>
 
 <style lang="scss" scoped>
@@ -260,6 +293,98 @@ watch(
 
     &:last-child {
       margin-bottom: 0;
+    }
+  }
+
+  // 运行模式卡片选择器
+  .run-mode-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+
+    .mode-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fafafa;
+      position: relative;
+      user-select: none;
+
+      &:hover {
+        border-color: #93c5fd;
+        background: #f0f7ff;
+      }
+
+      &.is-active {
+        border-color: #3b82f6;
+        background: #eff6ff;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+
+        .mode-card__icon .el-icon {
+          color: #3b82f6;
+        }
+
+        .mode-card__title {
+          color: #1d4ed8;
+        }
+
+        .mode-card__check {
+          opacity: 1;
+          color: #3b82f6;
+        }
+      }
+
+      &__icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: #e0e7ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        .el-icon {
+          font-size: 18px;
+          color: #6366f1;
+          transition: color 0.2s ease;
+        }
+      }
+
+      &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      &__title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        line-height: 1.4;
+        transition: color 0.2s ease;
+      }
+
+      &__desc {
+        font-size: 11px;
+        color: #9ca3af;
+        line-height: 1.3;
+      }
+
+      &__check {
+        font-size: 18px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        flex-shrink: 0;
+      }
     }
   }
 
@@ -283,6 +408,18 @@ watch(
       font-size: 14px;
       font-weight: 600;
       color: #374151;
+    }
+
+    .tip-icon {
+      margin-left: 6px;
+      font-size: 14px;
+      color: #9ca3af;
+      cursor: help;
+      flex-shrink: 0;
+
+      &:hover {
+        color: #6b7280;
+      }
     }
   }
 
@@ -338,65 +475,8 @@ watch(
       }
     }
   }
-
-  .label-with-tip {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-
-    .tip-icon {
-      font-size: 14px;
-      color: #9ca3af;
-      cursor: help;
-
-      &:hover {
-        color: #6b7280;
-      }
-    }
-  }
-
-  .tags-select {
-    :deep(.el-select__wrapper) {
-      min-height: 40px;
-      padding: 4px 8px;
-    }
-
-    :deep(.el-tag) {
-      border-radius: 6px;
-      background: #eff6ff;
-      border-color: #bfdbfe;
-      color: #1e40af;
-
-      .el-tag__close {
-        color: #6b7280;
-
-        &:hover {
-          background: #dbeafe;
-          color: #1e40af;
-        }
-      }
-    }
-  }
-
-  .empty-tags {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    color: #9ca3af;
-
-    .el-icon {
-      font-size: 24px;
-      margin-bottom: 8px;
-    }
-
-    span {
-      font-size: 14px;
-    }
-  }
 }
 
-// 响应式设计
 @media (max-width: 768px) {
   .runner-form-container {
     padding: 16px;

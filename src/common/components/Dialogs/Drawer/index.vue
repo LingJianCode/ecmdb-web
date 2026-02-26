@@ -25,7 +25,7 @@
           </div>
         </div>
         <div class="header-right" v-if="showClose">
-          <el-button type="text" :icon="Close" class="close-btn" @click="handleCancel" />
+          <el-button type="text" :icon="Close" class="close-btn" @click="handleClose" />
         </div>
       </div>
     </template>
@@ -69,6 +69,8 @@ interface Props {
   cancelButtonText?: string
   confirmButtonText?: string
   confirmButtonType?: "primary" | "success" | "warning" | "danger" | "info" | "text"
+  /** 点击取消时是否自动关闭，默认 true；设为 false 时只触发 cancel 事件，由父组件控制关闭逻辑 */
+  closeOnCancel?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -81,7 +83,8 @@ const props = withDefaults(defineProps<Props>(), {
   class: "",
   cancelButtonText: "取消",
   confirmButtonText: "确定",
-  confirmButtonType: "primary"
+  confirmButtonType: "primary",
+  closeOnCancel: true
 })
 
 const emits = defineEmits<{
@@ -121,9 +124,17 @@ const handleClosed = () => {
   emits("closed")
 }
 
+const handleClose = () => {
+  // NOTE: 头部 X 按钮永远关闭 Drawer
+  visible.value = false
+}
+
 const handleCancel = () => {
   emits("cancel")
-  visible.value = false
+  // NOTE: closeOnCancel=false 时由父组件自行控制关闭逻辑
+  if (props.closeOnCancel) {
+    visible.value = false
+  }
 }
 
 const handleConfirm = () => {

@@ -24,9 +24,23 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
     >
+      <!-- 运行模式插槽 -->
+      <template #run_mode="{ row }">
+        <el-tag v-if="row.run_mode === RunMode.Worker" type="info" effect="light"> 工作节点 </el-tag>
+        <el-tag v-else-if="row.run_mode === RunMode.Execute" type="success" effect="light"> 分布式执行 </el-tag>
+      </template>
+
       <!-- 标签列插槽 -->
       <template #tags="{ row }">
-        <el-tag v-for="tag in row.tags" :key="tag" :style="{ marginRight: '5px' }" effect="plain" type="primary">
+        <el-tag
+          v-for="tag in row.tags"
+          :key="tag"
+          :style="{ marginRight: '5px' }"
+          effect="plain"
+          type="primary"
+          size="small"
+          round
+        >
           {{ tag }}
         </el-tag>
       </template>
@@ -60,7 +74,7 @@
 import { h, nextTick, ref, watch } from "vue"
 import { Edit, Delete, Setting } from "@element-plus/icons-vue"
 import { usePagination } from "@/common/composables/usePagination"
-import { runner } from "@/api/runner/types/runner"
+import { runner, RunMode } from "@/api/runner/types/runner"
 import { deleteRunnerApi, listRunnerApi } from "@/api/runner"
 import Form from "./form.vue"
 import { ElMessage, ElMessageBox } from "element-plus"
@@ -75,9 +89,9 @@ import type { Column } from "@@/components/DataTable/types"
 
 // 表格列配置
 const tableColumns: Column[] = [
-  { prop: "name", label: "名称", align: "center" },
-  { prop: "worker_name", label: "工作节点", align: "center" },
-  { prop: "codebook_uid", label: "绑定模版", align: "center" },
+  { prop: "name", label: "名称", align: "center", width: 300 },
+  { prop: "run_mode", label: "运行模式", align: "center", slot: "run_mode", width: 140 },
+  { prop: "codebook_uid", label: "绑定任务模版", align: "center", width: 200 },
   { prop: "tags", label: "标签", align: "center", slot: "tags" }
 ]
 
@@ -170,3 +184,16 @@ const handleDelete = (row: runner) => {
 /** 监听分页参数的变化 */
 watch([() => paginationData.currentPage, () => paginationData.pageSize], listRunnerData, { immediate: true })
 </script>
+
+<style lang="scss" scoped>
+.target-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .execute-target {
+    font-weight: 500;
+    color: var(--el-color-success);
+  }
+}
+</style>

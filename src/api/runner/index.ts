@@ -56,3 +56,19 @@ export function listRunnerByWorkflowIdApi(workflokId: number) {
     data: { workflow_id: workflokId }
   })
 }
+
+/** by_codebook_uid 列表 */
+export function listRunnerByCodebookUidApi(data: runner.listByCodebookIdReq) {
+  return instance.post<runner.runners>({
+    url: `${API_SERVICE.CMDB}/runner/list/by_codebook_uid`,
+    data: data
+  })
+}
+
+/** exclude_codebook_uid 列表 */
+export function listRunnerExcludeCodebookUidApi(data: runner.listByCodebookIdReq) {
+  return instance.post<runner.runners>({
+    url: `${API_SERVICE.CMDB}/runner/list/exclude_codebook_uid`,
+    data: data
+  })
+}

@@ -1,10 +1,29 @@
+/** 执行单元的运行模式 */
+export enum RunMode {
+  /** 通过 Kafka 推送到工作节点执行 */
+  Worker = "WORKER",
+  /** 通过分布式任务平台执行节点分发 */
+  Execute = "EXECUTE"
+}
+
+export interface workerConfig {
+  worker_name: string
+  topic: string
+}
+
+export interface executeConfig {
+  service_name: string
+  handler: string
+}
+
 export interface runner {
   id: number
   name: string
-  worker_name: string
-  topic: string
   codebook_uid: string
   codebook_secret: string
+  run_mode: RunMode
+  worker?: workerConfig
+  execute?: executeConfig
   desc: string
   tags: string[]
   variables: variables[]
@@ -13,10 +32,11 @@ export interface runner {
 export interface registerOrUpdateReq {
   id?: number
   name: string
-  worker_name: string
-  topic: string
   codebook_uid: string
   codebook_secret: string
+  run_mode: RunMode
+  worker?: workerConfig
+  execute?: executeConfig
   desc: string
   tags: string[]
   variables?: variables[]
@@ -38,6 +58,10 @@ export interface listRunnerReq {
   offset: number
   /** 查询条数 */
   limit: number
+}
+
+export interface listByCodebookIdReq extends listRunnerReq {
+  codebook_uid: string
 }
 
 export interface runnerTags {

@@ -1,14 +1,5 @@
 <template>
   <div class="variable-configuration">
-    <div class="variable-header">
-      <div class="label-with-tip">
-        <span>变量配置</span>
-        <el-tooltip content="配置执行器运行时需要的环境变量和参数" placement="top">
-          <el-icon class="tip-icon"><QuestionFilled /></el-icon>
-        </el-tooltip>
-      </div>
-    </div>
-
     <div class="variables-container">
       <!-- 变量输入区域 -->
       <div class="variable-input-wrapper">
@@ -76,7 +67,7 @@
 
 <script lang="ts" setup>
 import { ref, watch } from "vue"
-import { Plus, Delete, Key, Document, Setting, QuestionFilled } from "@element-plus/icons-vue"
+import { Plus, Delete, Key, Document, Setting } from "@element-plus/icons-vue"
 import { ElMessage } from "element-plus"
 import type { variables } from "@/api/runner/types/runner"
 
@@ -166,32 +157,6 @@ watch(
 .variable-configuration {
   width: 100%;
   max-width: 100%;
-
-  .variable-header {
-    margin-bottom: 16px;
-
-    .label-with-tip {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      span {
-        font-size: 14px;
-        font-weight: 500;
-        color: #374151;
-      }
-
-      .tip-icon {
-        font-size: 14px;
-        color: #9ca3af;
-        cursor: help;
-
-        &:hover {
-          color: #6b7280;
-        }
-      }
-    }
-  }
 
   .variables-container {
     width: 100%;

@@ -2,8 +2,8 @@
   <PageContainer>
     <!-- 头部区域 -->
     <ManagerHeader
-      title="工作节点管理"
-      subtitle="管理工作节点状态和配置"
+      title="执行节点管理"
+      subtitle="工作节点通过 Kafka 推送任务，执行器由 Scheduler 调度，两者相互独立但职责一致"
       :show-add-button="false"
       @refresh="handleRefresh"
     />
@@ -25,12 +25,12 @@ import CustomTabs from "@@/components/Tabs/CustomTabs.vue"
 import ManagerHeader from "@/common/components/ManagerHeader/index.vue"
 import PageContainer from "@/common/components/PageContainer/index.vue"
 
-const activeName = ref("worker")
+const activeName = ref("executor")
 
 // 标签页配置
 const tabs = [
-  { name: "worker", label: "工作节点" },
-  { name: "executor", label: "任务执行器" }
+  { name: "executor", label: "执行器" },
+  { name: "worker", label: "工作节点" }
 ]
 
 const workerRef = ref<InstanceType<typeof Worker>>()

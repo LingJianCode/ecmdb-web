@@ -1,14 +1,5 @@
 <template>
   <div class="tag-configuration">
-    <div class="tag-header">
-      <div class="label-with-tip">
-        <span>标签</span>
-        <el-tooltip content="自动化任务是根据【标签】 + 【任务模版标识】进行匹配工作节点" placement="top">
-          <el-icon class="tip-icon"><QuestionFilled /></el-icon>
-        </el-tooltip>
-      </div>
-    </div>
-
     <div class="tags-container">
       <!-- 标签输入区域 -->
       <div class="tags-input-wrapper">
@@ -73,7 +64,7 @@
 
 <script lang="ts" setup>
 import { ref, watch, onMounted } from "vue"
-import { Plus, Delete, Star, QuestionFilled } from "@element-plus/icons-vue"
+import { Plus, Delete, Star } from "@element-plus/icons-vue"
 import { listRunnerTagsApi } from "@/api/runner"
 
 // 接收父组件传递
@@ -184,32 +175,6 @@ onMounted(() => {
 .tag-configuration {
   width: 100%;
   max-width: 100%;
-
-  .tag-header {
-    margin-bottom: 16px;
-
-    .label-with-tip {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      span {
-        font-size: 14px;
-        font-weight: 500;
-        color: #374151;
-      }
-
-      .tip-icon {
-        font-size: 14px;
-        color: #9ca3af;
-        cursor: help;
-
-        &:hover {
-          color: #6b7280;
-        }
-      }
-    }
-  }
 
   .tags-container {
     width: 100%;
