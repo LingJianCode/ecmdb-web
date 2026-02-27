@@ -25,17 +25,44 @@ export interface listByInstanceId {
   limit: number
 }
 
+export interface IWorker {
+  worker_name: string
+  topic: string
+}
+
+export interface IExecute {
+  service_name: string
+  handler: string
+}
+
+/** 任务运行模式 */
+export enum RunMode {
+  /** 通过 Kafka 推送到工作节点执行 */
+  Worker = "WORKER",
+  /** 通过分布式任务平台执行节点分发 */
+  Execute = "EXECUTE"
+}
+
 export interface task {
   id: number
   order_id: number
+  run_mode: RunMode
   codebook_uid: string
   codebook_name: string
+  worker?: IWorker
+  execute?: IExecute
   status: number
-  result: string
+  is_timing: boolean
+  scheduled_time: string
+  start_time: string
+  end_time: string
+  retry_count: number
   code: string
+  language: string
   args: string
   variables: string
-  language: string
+  result: string
+  trigger_position: string
 }
 
 export interface tasks {

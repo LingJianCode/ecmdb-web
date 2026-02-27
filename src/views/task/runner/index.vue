@@ -26,10 +26,8 @@
     >
       <!-- 运行模式插槽 -->
       <template #run_mode="{ row }">
-        <el-tag v-if="row.run_mode === RunMode.Worker" type="info" effect="light" round> 消息推送模式 </el-tag>
-        <el-tag v-else-if="row.run_mode === RunMode.Execute" type="success" effect="light" round>
-          分布式调度模式
-        </el-tag>
+        <el-tag v-if="row.run_mode === RunMode.Worker" type="info" effect="light" round> 消息推送 </el-tag>
+        <el-tag v-else-if="row.run_mode === RunMode.Execute" type="success" effect="light" round> 分布式调度 </el-tag>
       </template>
 
       <!-- 标签列插槽 -->

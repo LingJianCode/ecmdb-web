@@ -4,7 +4,7 @@
     :title="drawerTitle"
     :subtitle="drawerSubtitle"
     :header-icon="Operation"
-    size="45%"
+    size="35%"
     direction="rtl"
     :show-footer="isCreatingRunner"
     :close-on-cancel="false"

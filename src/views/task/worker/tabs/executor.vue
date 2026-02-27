@@ -62,7 +62,7 @@ import type { Column } from "@@/components/DataTable/types"
 // 表格列配置
 const tableColumns: Column[] = [
   { prop: "name", label: "执行器名称", align: "center" },
-  { prop: "mode", label: "运行模式", align: "center", slot: "mode" },
+  { prop: "mode", label: "执行模式", align: "center", slot: "mode" },
   { prop: "nodes", label: "下属在线节点", align: "center", slot: "nodes" },
   { prop: "handlers", label: "支持的方法", align: "center", slot: "handlers" },
   { prop: "desc", label: "描述", align: "center" }

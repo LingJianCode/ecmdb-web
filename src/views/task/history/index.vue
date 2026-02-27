@@ -35,7 +35,11 @@
 
       <!-- 执行时间列插槽 -->
       <template #run_time="{ row }">
-        <span>{{ row.start_time }}</span>
+        <div v-if="row.is_timing" class="time-display">
+          <div v-if="row.scheduled_time">计划: {{ row.scheduled_time }}</div>
+          <div v-if="row.start_time">开始: {{ row.start_time }}</div>
+        </div>
+        <span v-else>{{ row.start_time || "--" }}</span>
       </template>
 
       <!-- 操作列插槽 -->
@@ -69,7 +73,7 @@
 import { ref, watch } from "vue"
 import { usePagination } from "@/common/composables/usePagination"
 import { task } from "@/api/task/types/task"
-import { listTasksApi, retryTaskApi, updateTaskArgsApi, updateTaskVariablesApi } from "@/api/task"
+import { listTasksApi, retryTaskApi, updateTaskArgsApi, updateTaskVariablesApi, getTaskLogsApi } from "@/api/task"
 import OperateBtn from "@@/components/OperateBtn/index.vue"
 import { ElMessage } from "element-plus"
 import { TagInfo } from "@/common/components/EnumTag/index.vue"
@@ -90,8 +94,9 @@ const tableColumns: Column[] = [
   { prop: "codebook_name", label: "任务模版", align: "center" },
   { prop: "worker_name", label: "工作节点", align: "center" },
   { prop: "status", label: "状态", align: "center", slot: "status" },
+  { prop: "retry_count", label: "重试", align: "center", width: 80 },
   { prop: "is_timing", label: "定时任务", align: "center", slot: "is_timing" },
-  { prop: "run_time", label: "执行时间", align: "center", slot: "run_time", width: 200 }
+  { prop: "run_time", label: "计划/执行时间", align: "center", slot: "run_time", width: 200 }
 ]
 
 // 选中的行
@@ -182,10 +187,12 @@ const operateEvent = (data: task, name: string) => {
       resultVisible.value = true
       break
     case "output":
-      result.value = data.result
-      language.value = data.language
-      currentDialogType.value = "output"
-      resultVisible.value = true
+      getTaskLogsApi(data.id).then(({ data: logs }) => {
+        result.value = logs
+        language.value = "text"
+        currentDialogType.value = "output"
+        resultVisible.value = true
+      })
       break
     case "args":
       tempResult.value = JSON.parse(data.args)

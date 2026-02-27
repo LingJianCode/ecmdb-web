@@ -49,3 +49,10 @@ export function retryTaskApi(id: number) {
     data: { id: id }
   })
 }
+
+/** 获取任务日志 */
+export function getTaskLogsApi(taskId: number) {
+  return instance.get<string>({
+    url: `${API_SERVICE.CMDB}/task/logs/${taskId}`
+  })
+}

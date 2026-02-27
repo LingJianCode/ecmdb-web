@@ -4,7 +4,7 @@
     :title="computedActionName"
     :subtitle="orderInfo?.id ? `工单号: ${orderInfo.id}` : ''"
     :header-icon="Document"
-    size="50%"
+    size="40%"
     direction="rtl"
     :show-footer="false"
     @closed="onClosed"
@@ -58,7 +58,7 @@ const tabs = [
   { name: "form", label: "表单信息" },
   { name: "flow", label: "流程图" },
   { name: "process", label: "审批记录" },
-  { name: "task", label: "任务记录" }
+  { name: "task", label: "自动化任务" }
 ]
 
 const recordRef = ref<InstanceType<typeof Record>>()
