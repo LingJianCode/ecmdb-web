@@ -422,7 +422,7 @@ defineExpose({
     }
 
     .truncate-slim {
-      max-width: 200px;
+      max-width: 450px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;

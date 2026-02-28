@@ -38,8 +38,6 @@ export interface templateRules {
 }
 
 export interface template {
-  value: any
-  forEach(arg0: (template: any) => void): unknown
   id: number
   name: string
   rules: any
@@ -82,4 +80,8 @@ export interface templateCombination {
 
 export interface templateCombinations {
   template_combinations: templateCombination[]
+}
+
+export interface toggleFavoriteReq {
+  template_id: number
 }

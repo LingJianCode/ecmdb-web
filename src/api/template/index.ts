@@ -104,3 +104,18 @@ export function searchTemplateByKeywordApi(data: template.ByKeywordReq) {
     data: data
   })
 }
+
+/** 收藏/取消收藏模版 */
+export function toggleFavoriteApi(data: template.toggleFavoriteReq) {
+  return instance.post<boolean>({
+    url: `${API_SERVICE.CMDB}/template/favorite/toggle`,
+    data: data
+  })
+}
+
+/** 获取用户收藏的模版数据 */
+export function listFavoriteApi() {
+  return instance.post<template.templateCombination>({
+    url: `${API_SERVICE.CMDB}/template/favorite/list`
+  })
+}
