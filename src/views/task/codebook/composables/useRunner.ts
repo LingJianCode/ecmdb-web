@@ -1,5 +1,5 @@
 import { ref } from "vue"
-import { runner, RunMode } from "@/api/runner/types/runner"
+import { runner, Kind } from "@/api/runner/types/runner"
 import {
   listRunnerApi,
   listRunnerByCodebookUidApi,
@@ -35,7 +35,7 @@ export function useRunner() {
     offset: number = 0,
     limit: number = 20,
     keyword?: string,
-    runMode?: RunMode,
+    kind?: Kind,
     isAppend: boolean = false
   ) => {
     if (!isAppend) loading.value = true
@@ -45,7 +45,7 @@ export function useRunner() {
         offset,
         limit,
         keyword,
-        run_mode: runMode
+        kind
       })
 
       if (isAppend) {
@@ -70,7 +70,7 @@ export function useRunner() {
     offset: number = 0,
     limit: number = 20,
     keyword?: string,
-    runMode?: RunMode,
+    kind?: Kind,
     isAppend: boolean = false
   ) => {
     if (!isAppend) loading.value = true
@@ -80,7 +80,7 @@ export function useRunner() {
         offset,
         limit,
         keyword,
-        run_mode: runMode
+        kind
       })
 
       if (isAppend) {

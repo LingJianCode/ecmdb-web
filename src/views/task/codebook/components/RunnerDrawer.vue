@@ -29,10 +29,10 @@
                   class="premium-search"
                   @change="handleSearchBound"
                 />
-                <el-radio-group v-model="boundRunMode" class="premium-segmented" @change="handleSearchBound">
+                <el-radio-group v-model="boundKind" class="premium-segmented" @change="handleSearchBound">
                   <el-radio-button :value="undefined">全部</el-radio-button>
-                  <el-radio-button :value="RunMode.Worker">推送模式</el-radio-button>
-                  <el-radio-button :value="RunMode.Execute">调度模式</el-radio-button>
+                  <el-radio-button :value="Kind.KAFKA">推送模式</el-radio-button>
+                  <el-radio-button :value="Kind.GRPC">调度模式</el-radio-button>
                 </el-radio-group>
               </div>
               <div class="header-right">
@@ -53,12 +53,13 @@
                   v-for="item in codebookRunners"
                   :key="item.id"
                   class="premium-card"
-                  :class="item.run_mode.toLowerCase()"
+                  :class="item.kind.toLowerCase()"
                 >
                   <div class="card-aside">
-                    <el-icon class="mode-icon"
-                      ><Monitor v-if="item.run_mode === RunMode.Worker" /><Cpu v-else
-                    /></el-icon>
+                    <el-icon class="mode-icon">
+                      <Monitor v-if="item.kind === Kind.KAFKA" />
+                      <Cpu v-else />
+                    </el-icon>
                   </div>
                   <div class="card-body">
                     <div class="card-top">
@@ -66,15 +67,11 @@
                         <span class="card-title">{{ item.name }}</span>
                         <div class="card-meta">
                           <span class="mode-text">{{
-                            item.run_mode === RunMode.Worker ? "消息推送模式" : "分布式调度模式"
+                            item.kind === Kind.KAFKA ? "消息推送模式" : "分布式调度模式"
                           }}</span>
                           <span class="dot-separator">•</span>
-                          <span class="target-summary" v-if="item.run_mode === RunMode.Worker && item.worker">{{
-                            item.worker.worker_name
-                          }}</span>
-                          <span class="target-summary" v-else-if="item.run_mode === RunMode.Execute && item.execute">{{
-                            item.execute.service_name
-                          }}</span>
+                          <span class="target-summary">{{ item.target }}</span>
+                          <span v-if="item.handler" class="handler-tag-mini">{{ item.handler }}</span>
                         </div>
                       </div>
                       <div class="item-actions">
@@ -111,10 +108,10 @@
                   class="premium-search"
                   @change="handleSearchFork"
                 />
-                <el-radio-group v-model="forkRunMode" class="premium-segmented" @change="handleSearchFork">
+                <el-radio-group v-model="forkKind" class="premium-segmented" @change="handleSearchFork">
                   <el-radio-button :value="undefined">全部</el-radio-button>
-                  <el-radio-button :value="RunMode.Worker">推送模式</el-radio-button>
-                  <el-radio-button :value="RunMode.Execute">调度模式</el-radio-button>
+                  <el-radio-button :value="Kind.KAFKA">推送模式</el-radio-button>
+                  <el-radio-button :value="Kind.GRPC">调度模式</el-radio-button>
                 </el-radio-group>
               </div>
               <div class="header-right">
@@ -136,12 +133,13 @@
                   v-for="item in forkableRunners"
                   :key="item.id"
                   class="premium-card fork-item"
-                  :class="item.run_mode.toLowerCase()"
+                  :class="item.kind.toLowerCase()"
                 >
                   <div class="card-aside">
-                    <el-icon class="mode-icon"
-                      ><Monitor v-if="item.run_mode === RunMode.Worker" /><Cpu v-else
-                    /></el-icon>
+                    <el-icon class="mode-icon">
+                      <Monitor v-if="item.kind === Kind.KAFKA" />
+                      <Cpu v-else />
+                    </el-icon>
                   </div>
                   <div class="card-body">
                     <div class="card-top">
@@ -149,14 +147,11 @@
                         <span class="card-title">{{ item.name }}</span>
                         <div class="card-meta">
                           <span class="mode-text">{{
-                            item.run_mode === RunMode.Worker ? "消息推送模式" : "分布式调度模式"
+                            item.kind === Kind.KAFKA ? "消息推送模式" : "分布式调度模式"
                           }}</span>
-                          <template v-if="item.worker || item.execute">
-                            <span class="dot-separator">•</span>
-                            <span class="target-summary">{{
-                              item.run_mode === RunMode.Worker ? item.worker?.worker_name : item.execute?.service_name
-                            }}</span>
-                          </template>
+                          <span class="dot-separator">•</span>
+                          <span class="target-summary">{{ item.target }}</span>
+                          <span v-if="item.handler" class="handler-tag-mini">{{ item.handler }}</span>
                         </div>
                       </div>
                       <div class="item-actions">
@@ -212,7 +207,7 @@ import RunnerForm from "@/views/task/runner/form.vue"
 import { useRunner } from "../composables/useRunner"
 import { cloneDeep } from "lodash-es"
 import { codebook } from "@/api/codebook/types/codebook"
-import { runner, RunMode } from "@/api/runner/types/runner"
+import { runner, Kind } from "@/api/runner/types/runner"
 
 const visible = ref(false)
 const isCreatingRunner = ref(false)
@@ -252,8 +247,8 @@ const forkPageParams = ref({
 
 const boundKeyword = ref("")
 const forkKeyword = ref("")
-const boundRunMode = ref<RunMode>()
-const forkRunMode = ref<RunMode>()
+const boundKind = ref<Kind>()
+const forkKind = ref<Kind>()
 
 const drawerTitle = computed(() => {
   if (isCreatingRunner.value) {
@@ -285,7 +280,7 @@ const open = (row: codebook) => {
 
 const _fetchBound = (uid: string, isAppend: boolean = false) => {
   const offset = (boundPageParams.value.page - 1) * boundPageParams.value.limit
-  fetchCodebookRunners(uid, offset, boundPageParams.value.limit, boundKeyword.value, boundRunMode.value, isAppend)
+  fetchCodebookRunners(uid, offset, boundPageParams.value.limit, boundKeyword.value, boundKind.value, isAppend)
 }
 
 const handleSearchBound = () => {
@@ -331,7 +326,7 @@ const handleRefreshFork = (isAppend: boolean = false) => {
       offset,
       forkPageParams.value.limit,
       forkKeyword.value,
-      forkRunMode.value,
+      forkKind.value,
       isAppend
     )
   }
@@ -363,10 +358,12 @@ const handleToCreate = () => {
         name: currentCodebook.value.name + "_执行单元",
         codebook_uid: currentCodebook.value.identifier,
         codebook_secret: currentCodebook.value.secret,
-        run_mode: RunMode.Execute,
+        kind: Kind.GRPC,
         desc: "",
         tags: [],
-        variables: []
+        variables: [],
+        target: "",
+        handler: ""
       } as any)
     }
   })
@@ -584,11 +581,11 @@ defineExpose({
     opacity: 0.1;
   }
 
-  &.worker::before {
+  &.kafka::before {
     background: #3b82f6;
     opacity: 1;
   }
-  &.execute::before {
+  &.grpc::before {
     background: #10b981;
     opacity: 1;
   }
@@ -615,11 +612,11 @@ defineExpose({
     }
   }
 
-  &.worker .card-aside {
+  &.kafka .card-aside {
     color: #3b82f6;
     background: #eff6ff;
   }
-  &.execute .card-aside {
+  &.grpc .card-aside {
     color: #10b981;
     background: #ecfdf5;
   }
@@ -669,6 +666,17 @@ defineExpose({
     }
     .target-summary {
       color: #94a3b8;
+    }
+
+    .handler-tag-mini {
+      background: #ecfdf5;
+      color: #10b981;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid #d1fae5;
+      white-space: nowrap;
     }
   }
 

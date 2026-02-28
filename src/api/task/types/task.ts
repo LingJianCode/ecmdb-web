@@ -25,32 +25,22 @@ export interface listByInstanceId {
   limit: number
 }
 
-export interface IWorker {
-  worker_name: string
-  topic: string
-}
-
-export interface IExecute {
-  service_name: string
-  handler: string
-}
-
-/** 任务运行模式 */
-export enum RunMode {
+/** 任务运行模式 (对应后端 Kind) */
+export enum Kind {
   /** 通过 Kafka 推送到工作节点执行 */
-  Worker = "WORKER",
+  KAFKA = "KAFKA",
   /** 通过分布式任务平台执行节点分发 */
-  Execute = "EXECUTE"
+  GRPC = "GRPC"
 }
 
 export interface task {
   id: number
   order_id: number
-  run_mode: RunMode
+  kind: Kind
   codebook_uid: string
   codebook_name: string
-  worker?: IWorker
-  execute?: IExecute
+  target: string
+  handler: string
   status: number
   is_timing: boolean
   scheduled_time: string

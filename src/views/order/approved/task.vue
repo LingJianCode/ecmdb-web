@@ -12,7 +12,7 @@
             ></span>
             <span class="node-name-mini">{{ row.codebook_name || "未命名任务" }}</span>
             <div class="meta-tags-slim">
-              <span class="meta-pill">{{ row.run_mode === RunMode.Worker ? "立即执行" : "定时任务" }}</span>
+              <span class="meta-pill">{{ row.kind === Kind.KAFKA ? "立即执行" : "调度执行" }}</span>
               <span v-if="row.is_timing" class="meta-pill timing">{{ row.scheduled_time }}</span>
             </div>
           </div>
@@ -28,16 +28,14 @@
         <div class="card-body-slim">
           <!-- 核心详情行 -->
           <div class="info-line-slim">
-            <template v-if="row.run_mode === RunMode.Worker && row.worker">
+            <template v-if="row.kind === Kind.KAFKA">
               <el-icon><Cpu /></el-icon>
-              <span class="info-content"
-                >{{ row.worker.worker_name }} <small>@ {{ row.worker.topic }}</small></span
-              >
+              <span class="info-content">{{ row.target }} <small>@ KAFKA</small></span>
             </template>
-            <template v-if="row.run_mode === RunMode.Execute && row.execute">
+            <template v-else-if="row.kind === Kind.GRPC">
               <el-icon><Memo /></el-icon>
               <span class="info-content"
-                >{{ row.execute.service_name }} <small>/ {{ row.execute.handler }}</small></span
+                >{{ row.target }} <small>/ {{ row.handler }}</small></span
               >
             </template>
             <template v-if="row.trigger_position">
@@ -134,7 +132,7 @@ import {
   Setting,
   Box
 } from "@element-plus/icons-vue"
-import { task, RunMode } from "@/api/task/types/task"
+import { task, Kind } from "@/api/task/types/task"
 import {
   listTasksByInstanceIdApi,
   retryTaskApi,

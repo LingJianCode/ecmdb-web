@@ -1,29 +1,20 @@
-/** 执行单元的运行模式 */
-export enum RunMode {
+/** 执行单元的运行模式 (对应后端 Kind) */
+export enum Kind {
   /** 通过 Kafka 推送到工作节点执行 */
-  Worker = "WORKER",
+  KAFKA = "KAFKA",
   /** 通过分布式任务平台执行节点分发 */
-  Execute = "EXECUTE"
-}
-
-export interface workerConfig {
-  worker_name: string
-  topic: string
-}
-
-export interface executeConfig {
-  service_name: string
-  handler: string
+  GRPC = "GRPC"
 }
 
 export interface runner {
   id: number
   name: string
   codebook_uid: string
+  codebook_name?: string
   codebook_secret: string
-  run_mode: RunMode
-  worker?: workerConfig
-  execute?: executeConfig
+  kind: Kind
+  target: string
+  handler: string
   desc: string
   tags: string[]
   variables: variables[]
@@ -34,9 +25,9 @@ export interface registerOrUpdateReq {
   name: string
   codebook_uid: string
   codebook_secret: string
-  run_mode: RunMode
-  worker?: workerConfig
-  execute?: executeConfig
+  kind: Kind
+  target: string
+  handler: string
   desc: string
   tags: string[]
   variables?: variables[]
@@ -63,7 +54,7 @@ export interface listRunnerReq {
 export interface listByCodebookIdReq extends listRunnerReq {
   codebook_uid: string
   keyword?: string
-  run_mode?: RunMode
+  kind?: Kind
 }
 
 export interface runnerTags {

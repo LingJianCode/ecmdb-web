@@ -25,9 +25,9 @@
       @current-change="handleCurrentChange"
     >
       <!-- 运行模式插槽 -->
-      <template #run_mode="{ row }">
-        <el-tag v-if="row.run_mode === RunMode.Worker" type="info" effect="light" round> 消息推送 </el-tag>
-        <el-tag v-else-if="row.run_mode === RunMode.Execute" type="success" effect="light" round> 分布式调度 </el-tag>
+      <template #kind="{ row }">
+        <el-tag v-if="row.kind === Kind.KAFKA" type="info" effect="light" round> 消息推送 </el-tag>
+        <el-tag v-else-if="row.kind === Kind.GRPC" type="success" effect="light" round> 分布式调度 </el-tag>
       </template>
 
       <!-- 标签列插槽 -->
@@ -74,7 +74,7 @@
 import { h, nextTick, ref, watch } from "vue"
 import { Edit, Delete, Setting } from "@element-plus/icons-vue"
 import { usePagination } from "@/common/composables/usePagination"
-import { runner, RunMode } from "@/api/runner/types/runner"
+import { runner, Kind } from "@/api/runner/types/runner"
 import { deleteRunnerApi, listRunnerApi } from "@/api/runner"
 import Form from "./form.vue"
 import { ElMessage, ElMessageBox } from "element-plus"
@@ -90,7 +90,7 @@ import type { Column } from "@@/components/DataTable/types"
 // 表格列配置
 const tableColumns: Column[] = [
   { prop: "name", label: "名称", align: "center", width: 300 },
-  { prop: "run_mode", label: "运行模式", align: "center", slot: "run_mode" },
+  { prop: "kind", label: "运行模式", align: "center", slot: "kind" },
   { prop: "codebook_uid", label: "绑定任务模版", align: "center" },
   { prop: "tags", label: "标签", align: "center", slot: "tags" }
 ]

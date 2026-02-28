@@ -1,6 +1,6 @@
 <template>
   <DataTable
-    :data="workersData"
+    :data="agentsData"
     :columns="tableColumns"
     :show-selection="true"
     :show-pagination="true"
@@ -13,28 +13,26 @@
     @size-change="handleSizeChange"
     @current-change="handleCurrentChange"
   >
-    <!-- 状态列插槽 -->
-    <template #status="{ row }">
-      <el-tag v-if="row.status === 1" effect="plain" type="primary" round disable-transitions>运行</el-tag>
-      <el-tag v-else-if="row.status === 2" effect="plain" type="warning" round disable-transitions>禁用</el-tag>
-      <el-tag v-else-if="row.status === 3" effect="plain" type="danger" round disable-transitions>离线</el-tag>
-      <el-tag v-else type="info" effect="plain" round disable-transitions>未知类型</el-tag>
-    </template>
-
-    <!-- 操作列插槽 -->
-    <template #actions="{ row }">
-      <OperateBtn :items="operateBtnItems" @routeEvent="handleOperateEvent" :operateItem="row" :maxLength="2" />
+    <!-- 处理器列插槽 -->
+    <template #handlers="{ row }">
+      <div v-if="row.handlers && row.handlers.length > 0" class="flex-wrap">
+        <el-tooltip v-for="h in row.handlers" :key="h.name" :content="h.desc || '暂无描述'" placement="top">
+          <el-tag size="small" type="success" effect="light" round style="margin-right: 4px; margin-bottom: 4px">
+            {{ h.name }}
+          </el-tag>
+        </el-tooltip>
+      </div>
+      <span v-else class="text-gray-400">暂无处理器</span>
     </template>
   </DataTable>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref, watch, computed } from "vue"
 import { usePagination } from "@/common/composables/usePagination"
-import { worker } from "@/api/worker/types/worker"
-import { listWorkerApi } from "@/api/worker/worker"
+import type { Agent } from "@/api/etask/agent/type"
+import { listAgentsApi } from "@/api/etask/agent"
 import DataTable from "@/common/components/DataTable/index.vue"
-import OperateBtn from "@@/components/OperateBtn/index.vue"
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
 import type { Column } from "@@/components/DataTable/types"
@@ -43,48 +41,38 @@ import type { Column } from "@@/components/DataTable/types"
 const tableColumns: Column[] = [
   { prop: "name", label: "名称", align: "center" },
   { prop: "topic", label: "Topic", align: "center" },
-  { prop: "status", label: "状态", align: "center", slot: "status" },
+  { prop: "handlers", label: "支持的方法", align: "center", slot: "handlers" },
   { prop: "desc", label: "描述", align: "center" }
 ]
 
-// 操作按钮配置
-const operateBtnItems = [{ name: "禁用", code: "disable", type: "warning" }]
-
 // 选中的行
-const selectedRows = ref<worker[]>([])
-
-// 操作按钮事件
-const handleOperateEvent = (row: worker, action: string) => {
-  if (action === "disable") {
-    handleUpdate(row)
-  }
-}
+const selectedRows = ref<Agent[]>([])
 
 // 选择变化事件
-const handleSelectionChange = (selection: worker[]) => {
+const handleSelectionChange = (selection: Agent[]) => {
   selectedRows.value = selection
 }
 
-/** 查询模版列表 */
-const workersData = ref<worker[]>([])
+/** 查询 Agent 列表 */
+const rawAgentsData = ref<Agent[]>([])
 const listWorkersData = () => {
-  listWorkerApi({
-    offset: (paginationData.currentPage - 1) * paginationData.pageSize,
-    limit: paginationData.pageSize
-  })
+  listAgentsApi()
     .then(({ data }) => {
-      paginationData.total = data.total
-      workersData.value = data.workers
+      rawAgentsData.value = data || []
+      paginationData.total = rawAgentsData.value.length
     })
     .catch(() => {
-      workersData.value = []
+      rawAgentsData.value = []
     })
     .finally(() => {})
 }
 
-const handleUpdate = (row: worker) => {
-  console.log(row)
-}
+// 纯前端分页（因为后端暂未提供分页参数）
+const agentsData = computed(() => {
+  const start = (paginationData.currentPage - 1) * paginationData.pageSize
+  const end = start + paginationData.pageSize
+  return rawAgentsData.value.slice(start, end)
+})
 
 /** 监听分页参数的变化 */
 watch([() => paginationData.currentPage, () => paginationData.pageSize], listWorkersData, { immediate: true })
@@ -94,4 +82,10 @@ defineExpose({
 })
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.flex-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+</style>

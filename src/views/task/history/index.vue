@@ -27,21 +27,21 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
     >
-      <!-- 执行目标插槽：区分 Worker 和 Execute 模式 -->
+      <!-- 执行目标插槽：区分 KAFKA 和 GRPC 模式 -->
       <template #execute_target="{ row }">
         <div class="execute-target-cell">
-          <template v-if="row.run_mode === RunMode.Worker && row.worker">
+          <template v-if="row.kind === Kind.KAFKA">
             <el-icon class="target-icon worker"><Cpu /></el-icon>
             <span class="target-text">
-              {{ row.worker.worker_name }}
-              <small class="target-meta">@{{ row.worker.topic }}</small>
+              {{ row.target }}
+              <small class="target-meta">@KAFKA</small>
             </span>
           </template>
-          <template v-else-if="row.run_mode === RunMode.Execute && row.execute">
+          <template v-else-if="row.kind === Kind.GRPC">
             <el-icon class="target-icon execute"><Memo /></el-icon>
             <span class="target-text">
-              {{ row.execute.service_name }}
-              <small class="target-meta">/{{ row.execute.handler }}</small>
+              {{ row.target }}
+              <small class="target-meta">/{{ row.handler }}</small>
             </span>
           </template>
           <span v-else class="target-empty">--</span>
@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { Cpu, Memo } from "@element-plus/icons-vue"
-import { task, RunMode } from "@/api/task/types/task"
+import { task, Kind } from "@/api/task/types/task"
 import { retryTaskApi, updateTaskArgsApi, updateTaskVariablesApi, getTaskLogsApi } from "@/api/task"
 import OperateBtn from "@@/components/OperateBtn/index.vue"
 import { ElMessage } from "element-plus"

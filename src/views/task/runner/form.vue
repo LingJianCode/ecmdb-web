@@ -17,17 +17,17 @@
 
         <div class="form-row">
           <el-form-item prop="name" label="执行器名称" class="form-item">
-            <el-input v-model="formData.name" disabled placeholder="自动生成：模版名称（节点名称）" size="large" />
+            <el-input v-model="formData.name" disabled placeholder="自动生成：模版名称（目标节点）" size="large" />
           </el-form-item>
         </div>
 
         <div class="form-row">
-          <el-form-item prop="run_mode" label="运行模式" class="form-item">
+          <el-form-item prop="kind" label="运行模式" class="form-item">
             <div class="run-mode-selector">
               <div
                 class="mode-card"
-                :class="{ 'is-active': formData.run_mode === RunMode.Execute }"
-                @click="formData.run_mode = RunMode.Execute"
+                :class="{ 'is-active': formData.kind === Kind.GRPC }"
+                @click="onKindChange(Kind.GRPC)"
               >
                 <div class="mode-card__icon">
                   <el-icon><Monitor /></el-icon>
@@ -44,8 +44,8 @@
 
               <div
                 class="mode-card"
-                :class="{ 'is-active': formData.run_mode === RunMode.Worker }"
-                @click="formData.run_mode = RunMode.Worker"
+                :class="{ 'is-active': formData.kind === Kind.KAFKA }"
+                @click="onKindChange(Kind.KAFKA)"
               >
                 <div class="mode-card__icon">
                   <el-icon><Connection /></el-icon>
@@ -60,18 +60,18 @@
           </el-form-item>
         </div>
 
-        <!-- worker 模式：工作节点选择器 -->
-        <div class="form-row" v-if="formData.run_mode === RunMode.Worker">
-          <el-form-item prop="worker.worker_name" label="工作节点名称" class="form-item">
-            <WorkerSection v-model="formData.worker!.worker_name" />
-          </el-form-item>
-        </div>
+        <!-- KAFKA 模式：工作节点 + handler 级联选择器 -->
+        <WorkerSection
+          v-if="formData.kind === Kind.KAFKA"
+          v-model:target="formData.target"
+          v-model:handler="formData.handler"
+        />
 
-        <!-- execute 模式：执行器 + handler 级联选择器 -->
+        <!-- GRPC 模式：执行器 + handler 级联选择器 -->
         <ExecuteSection
-          v-if="formData.run_mode === RunMode.Execute"
-          v-model:service-name="formData.execute!.service_name"
-          v-model:handler="formData.execute!.handler"
+          v-if="formData.kind === Kind.GRPC"
+          v-model:target="formData.target"
+          v-model:handler="formData.handler"
         />
       </div>
 
@@ -147,7 +147,7 @@ import {
   Monitor,
   CircleCheckFilled
 } from "@element-plus/icons-vue"
-import { registerOrUpdateReq, runner, variables, RunMode } from "@/api/runner/types/runner"
+import { registerOrUpdateReq, variables, Kind } from "@/api/runner/types/runner"
 import { registerRunnerApi, updateRunnerAPi } from "@/api/runner"
 import { useCodebooks } from "./composables/useCodebooks"
 import WorkerSection from "./components/WorkerSection.vue"
@@ -167,12 +167,12 @@ const DEFAULT_FORM_DATA: registerOrUpdateReq = {
   name: "",
   codebook_uid: "",
   codebook_secret: "",
-  run_mode: RunMode.Execute,
+  kind: Kind.GRPC,
   desc: "",
   tags: [],
   variables: [],
-  worker: { worker_name: "", topic: "" },
-  execute: { service_name: "", handler: "" }
+  target: "",
+  handler: ""
 }
 
 const formData = ref<registerOrUpdateReq>(cloneDeep(DEFAULT_FORM_DATA))
@@ -181,10 +181,19 @@ const formRef = ref<FormInstance | null>(null)
 // ── 校验规则 ────────────────────────────────────────────────────────────────
 const formRules: FormRules = {
   name: [{ required: true, message: "必须输入执行器名称", trigger: "blur" }],
-  run_mode: [{ required: true, message: "必须选择运行模式", trigger: "change" }],
-  "worker.worker_name": [{ required: true, message: "必须选取工作节点", trigger: "change" }],
-  "execute.service_name": [{ required: true, message: "必须选择执行器服务", trigger: "change" }],
-  "execute.handler": [{ required: true, message: "必须选择执行处理器", trigger: "change" }],
+  kind: [{ required: true, message: "必须选择运行模式", trigger: "change" }],
+  target: [{ required: true, message: "必须选取目标/服务", trigger: "change" }],
+  handler: [
+    {
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          return callback(new Error("必须选择执行处理器"))
+        }
+        callback()
+      },
+      trigger: "change"
+    }
+  ],
   codebook_uid: [{ required: true, message: "必须输入任务模版唯一标识", trigger: "blur" }],
   codebook_secret: [{ required: true, message: "必须输入任务模版密钥", trigger: "blur" }],
   tags: [{ required: true, message: "必须输入标签", trigger: "blur" }]
@@ -203,17 +212,11 @@ const codebookName = computed(() => {
 
 // ── 自动生成执行单元名称 ──────────────────────────────────────────────────────
 watch(
-  () =>
-    [
-      codebookName.value,
-      formData.value.run_mode,
-      formData.value.worker?.worker_name,
-      formData.value.execute?.service_name
-    ] as const,
-  ([cName, mode, workerName, serviceName]) => {
-    const suffix = mode === RunMode.Worker ? workerName : serviceName
-    if (cName && suffix) {
-      formData.value.name = `${cName}（${suffix}）`
+  () => [codebookName.value, formData.value.target, formData.value.handler] as const,
+  ([cName, target, handler]) => {
+    if (cName && target) {
+      const targetStr = handler ? `${target}/${handler}` : target
+      formData.value.name = `${cName}（${targetStr}）`
     } else if (cName) {
       formData.value.name = `${cName}（）`
     }
@@ -222,6 +225,12 @@ watch(
 )
 
 // ── 表单操作 ────────────────────────────────────────────────────────────────
+const onKindChange = (kind: Kind) => {
+  formData.value.kind = kind
+  formData.value.target = ""
+  formData.value.handler = ""
+}
+
 const handleTagsChange = (tags: string[]) => {
   formData.value.tags = tags
 }
@@ -237,13 +246,6 @@ const submitForm = () => {
     const api = formData.value.id === undefined ? registerRunnerApi : updateRunnerAPi
     const submitData = cloneDeep(formData.value)
 
-    // NOTE: 提交时根据 run_mode 裁剪多余字段，保持请求体干净
-    if (submitData.run_mode === RunMode.Worker) {
-      delete submitData.execute
-    } else if (submitData.run_mode === RunMode.Execute) {
-      delete submitData.worker
-    }
-
     api(submitData)
       .then(() => {
         emits("closed")
@@ -256,16 +258,19 @@ const submitForm = () => {
   })
 }
 
-const setFrom = (row: runner) => {
-  formData.value = cloneDeep(row)
-
-  // NOTE: worker/execute 子对象若缺失则初始化，防止模板对 worker!.xxx 绝对引用报错
-  if (!formData.value.worker) {
-    formData.value.worker = { worker_name: "", topic: "" }
+const setFrom = (row: any) => {
+  const data = cloneDeep(row)
+  // 兼容旧数据的扁平化处理
+  if (!data.kind && data.run_mode) {
+    data.kind = data.run_mode === "WORKER" ? Kind.KAFKA : Kind.GRPC
   }
-  if (!formData.value.execute) {
-    formData.value.execute = { service_name: "", handler: "" }
+  if (!data.target) {
+    data.target = data.worker?.worker_name || data.execute?.service_name || ""
   }
+  if (!data.handler) {
+    data.handler = data.execute?.handler || ""
+  }
+  formData.value = data
 }
 
 const resetForm = () => {
