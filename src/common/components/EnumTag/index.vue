@@ -4,6 +4,7 @@ import { computed } from "vue"
 export interface TagInfo {
   type: "info" | "primary" | "success" | "warning" | "danger"
   text: string
+  color?: string
 }
 
 type Effect = "dark" | "light" | "plain"
@@ -35,7 +36,12 @@ const current = computed<TagInfo>(() => {
 </script>
 
 <template>
-  <el-tag :type="current.type" :effect="effect || 'plain'">
+  <el-tag
+    :type="current.type"
+    :effect="effect || 'plain'"
+    :color="current.color"
+    :style="{ color: current.color ? '#fff' : '' }"
+  >
     {{ current.text }}
   </el-tag>
 </template>

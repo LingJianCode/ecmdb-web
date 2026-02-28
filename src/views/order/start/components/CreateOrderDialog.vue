@@ -10,6 +10,7 @@
     :close-on-press-escape="true"
     align-center
     destroy-on-close
+    append-to-body
   >
     <template #header>
       <div class="dialog-header">
@@ -234,35 +235,17 @@ onUnmounted(() => {
     border-radius: calc(0.5rem + 0.1vw);
     font-weight: 600;
     font-size: calc(0.7rem + 0.1vw);
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border: none;
-    color: #ffffff;
-    box-shadow: 0 calc(0.2rem + 0.1vw) calc(0.6rem + 0.2vw) rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
 
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s;
-    }
-
-    &:hover:not(:disabled):not(.is-loading) {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-      transform: translateY(calc(-0.1rem + 0.05vw));
-      box-shadow: 0 calc(0.5rem + 0.2vw) calc(1.2rem + 0.3vw) rgba(59, 130, 246, 0.4);
-
-      &::before {
-        left: 100%;
-      }
-    }
+  .submit-button:hover:not(:disabled):not(.is-loading) {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
   }
 }
 
-.dialog-footer {
+.create-order-dialog {
   padding: calc(0.6rem + 0.1vw);
   border-top: 1px solid #f1f5f9;
 
@@ -270,22 +253,23 @@ onUnmounted(() => {
     padding: calc(0.8rem + 0.2vw);
   }
 }
+</style>
 
-:deep(.create-order-dialog) {
+<style lang="scss">
+/* 全局样式：处理 append-to-body 后的弹窗样式 */
+.create-order-dialog {
   .el-dialog {
-    border-radius: calc(0.6rem + 0.1vw);
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 calc(1.2rem + 0.3vw) calc(2.4rem + 0.5vw) calc(-0.6rem + 0.1vw) rgba(0, 0, 0, 0.25);
     border: 1px solid #e2e8f0;
+    box-shadow:
+      0 10px 25px -5px rgba(0, 0, 0, 0.1),
+      0 8px 10px -6px rgba(0, 0, 0, 0.1);
 
     @media (max-width: 768px) {
-      margin: calc(0.6rem + 0.1vw);
-      width: calc(100% - 1.2rem) !important;
+      margin: 10px;
+      width: calc(100% - 20px) !important;
       max-width: none !important;
-    }
-
-    @media (min-width: 1280px) and (max-width: 1440px) {
-      width: calc(24rem + 2vw) !important;
     }
   }
 
@@ -299,11 +283,12 @@ onUnmounted(() => {
   }
 }
 
-:deep(.dialog-modal) {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+.dialog-modal {
+  background: rgba(0, 0, 0, 0.4) !important;
 }
+</style>
 
+<style lang="scss" scoped>
 .dialog-header {
   display: flex;
   justify-content: space-between;
